@@ -38,8 +38,6 @@
       font-weight: bold;
       margin: 20px 0;
       color: #2d3748;
-      height: 60px;
-      line-height: 60px;
     }
     .record-button {
       width: 110px;
@@ -55,7 +53,6 @@
     #start {
       background: #48bb78;
       color: white;
-      display: block;
     }
     #start:hover { background: #38a169; transform: scale(1.05); }
     #stop {
@@ -81,13 +78,6 @@
     #preview {
       margin-top: 20px;
       width: 100%;
-      max-height: 80px;
-    }
-    .info {
-      margin-top: 20px;
-      font-size: 14px;
-      color: #718096;
-      line-height: 1.6;
     }
     #status {
       margin-top: 15px;
@@ -97,7 +87,6 @@
     }
     #result {
       margin-top: 20px;
-      font-size: 14px;
       text-align: left;
     }
     #result h3 {
@@ -115,11 +104,11 @@
       background: #e6f4ea;
       font-weight: 500;
     }
-    @media (max-height: 650px) {
-      .container { padding: 20px 15px; }
-      h2 { font-size: 1.3rem; }
-      #timer { font-size: 40px; height: 50px; line-height: 50px; }
-      .record-button { width: 90px; height: 90px; font-size: 40px; }
+    .info {
+      margin-top: 20px;
+      font-size: 14px;
+      color: #718096;
+      line-height: 1.6;
     }
   </style>
 </head>
@@ -127,28 +116,28 @@
   <div class="container">
     <h2>Asistentul tău Dentiq</h2>
     <div id="timer">00:00</div>
-    <button id="start" class="record-button" title="Începe înregistrare">🎤</button>
-    <button id="stop" class="record-button" title="Oprește înregistrare">⏹</button>
+    <button id="start" class="record-button">🎤</button>
+    <button id="stop" class="record-button">⏹</button>
     <div class="recording-indicator">● Înregistrare în desfășurare...</div>
     <audio id="preview" controls></audio>
     <div id="status"></div>
     <div id="result"></div>
     <div class="info">
-      La oprirea înregistrării se descarcă automat fișierul audio.<br>
-      Textul transcris și rezumatul apar mai jos (procesare AI în 5-20 sec).<br><br>
-      <strong>Confidențialitate:</strong> Dentiq nu salvează nimic. Totul rămâne doar pe dispozitivul tău.
+      La oprire se descarcă automat fișierul audio.<br>
+      Transcrierea și rezumatul apar mai jos după procesare AI (5-20 sec).<br><br>
+      <strong>Confidențialitate totală:</strong> Nimic nu este salvat pe server.
     </div>
   </div>
 
   <script>
     let recorder, audioBlob, startTime, timerInterval;
 
-    function updateTimer() {
+    const updateTimer = () => {
       const elapsed = Math.floor((Date.now() - startTime) / 1000);
       const mins = String(Math.floor(elapsed / 60)).padStart(2, "0");
       const secs = String(elapsed % 60).padStart(2, "0");
       document.getElementById("timer").textContent = `${mins}:${secs}`;
-    }
+    };
 
     navigator.mediaDevices.getUserMedia({ audio: true })
       .then(stream => {
@@ -162,55 +151,54 @@
           const audioUrl = URL.createObjectURL(audioBlob);
           document.getElementById("preview").src = audioUrl;
 
-          // Descărcare audio
+          // Descărcare audio automat
           const today = new Date().toISOString().slice(0, 10);
-          const audioLink = document.createElement("a");
-          audioLink.href = audioUrl;
-          audioLink.download = `consultatie_${today}.webm`;
-          document.body.appendChild(audioLink);
-          audioLink.click();
-          document.body.removeChild(audioLink);
+          const a = document.createElement("a");
+          a.href = audioUrl;
+          a.download = `consultatie_${today}.webm`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
 
           // Procesare AI
-          document.getElementById("status").textContent = "Se procesează cu AI... (5-20 sec)";
+          document.getElementById("status").textContent = "Se procesează cu AI...";
           document.getElementById("status").style.color = "#3182ce";
           document.getElementById("result").innerHTML = "";
 
           try {
             const response = await fetch("/api/transcribe", {
               method: "POST",
-              body: audioBlob,
+              body: audioBlob
             });
 
-            const result = await response.json();
-
-            if (response.ok) {
-              document.getElementById("result").innerHTML = `
-                <h3>Transcriere completă:</h3>
-                <p>${result.fullText || 'Fără text detectat'}</p>
-                <h3>Rezumat structurat:</h3>
-                <p class="summary">${result.summary || 'Fără rezumat generat'}</p>
-              `;
-              document.getElementById("status").textContent = "Succes! Textul este gata.";
-              document.getElementById("status").style.color = "#48bb78";
-            } else {
-              throw new Error(result.error || result.details || 'Eroare server');
+            if (!response.ok) {
+              const errText = await response.text();
+              throw new Error(errText || "Eroare server");
             }
+
+            const data = await response.json();
+
+            document.getElementById("result").innerHTML = `
+              <h3>Transcriere completă:</h3>
+              <p>${data.fullText || "Fără text detectat"}</p>
+              <h3>Rezumat structurat:</h3>
+              <p class="summary">${data.summary || "Fără rezumat"}</p>
+            `;
+
+            document.getElementById("status").textContent = "Succes!";
+            document.getElementById("status").style.color = "#48bb78";
           } catch (err) {
             document.getElementById("result").innerHTML = `<p style="color:#f56565;">Eroare AI: ${err.message}</p>`;
-            document.getElementById("status").textContent = "Eroare – doar audio salvat.";
+            document.getElementById("status").textContent = "Eroare – doar audio salvat";
             document.getElementById("status").style.color = "#f56565";
           }
 
-          // Reset
           clearInterval(timerInterval);
           document.body.classList.remove("recording");
           document.getElementById("timer").textContent = "00:00";
         };
       })
-      .catch(err => {
-        alert("Permite accesul la microfon pentru a folosi asistentul.");
-      });
+      .catch(() => alert("Permite accesul la microfon."));
 
     document.getElementById("start").onclick = () => {
       recorder.start();
@@ -222,9 +210,7 @@
       document.getElementById("result").innerHTML = "";
     };
 
-    document.getElementById("stop").onclick = () => {
-      recorder.stop();
-    };
+    document.getElementById("stop").onclick = () => recorder.stop();
   </script>
 </body>
 </html>
