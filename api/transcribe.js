@@ -1,79 +1,105 @@
 import { OpenAI } from 'openai';
-import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+export const config = {
+  api: {
+    bodyParser: false, // Obligatoriu pentru fișiere audio mari
+    sizeLimit: '10mb', // Limita audio
+  },
+};
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    res.status(405).json({ error: 'Method not allowed' });
+    return;
   }
 
   try {
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    // Citește tot body-ul ca buffer
+    const buffers = [];
+    for await (const chunk of req) {
+      buffers.push(chunk);
+    }
+    const audioBuffer = Buffer.concat(buffers);
 
-    // Primește audio din frontend
-    const audioBuffer = Buffer.from(await req.body.arrayBuffer());
-    
+    if (audioBuffer.length === 0) {
+      throw new Error('Audio gol');
+    }
+
     // Transcriere cu Whisper
     const transcription = await openai.audio.transcriptions.create({
-      file: new File([audioBuffer], 'audio.webm', { type: 'audio/webm' }),
+      file: new File([audioBuffer], 'recording.webm', { type: 'audio/webm' }),
       model: 'whisper-1',
-      language: 'ro',  // Pentru română
+      language: 'ro',
     });
-    const text = transcription.text;
 
-    // Rezumat structurat cu GPT
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: 'Ești un asistent stomatologic. Analizează transcrierea consultației și extrage informații pe categorii: Simptome, Observații din consultație, Propuneri/Tratament, Alte note. Dacă o categorie nu este menționată, scrie "Nu s-au identificat din dictare". Folosește format markdown clar.' },
-        { role: 'user', content: `Transcriere: ${text}` },
-      ],
-    });
-    const summary = completion.choices[0].message.content;
-
-    // Generează PDF
-    const pdfDoc = await PDFDocument.create();
-    const page = pdfDoc.addPage([595, 842]);  // A4
-    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-    const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-
-    // Header
-    page.drawText('Rezumat Consultație Dentiq', { x: 50, y: 790, size: 18, font: boldFont, color: rgb(0.2, 0.5, 0.8) });
-    const today = new Date().toISOString().slice(0, 10);
-    page.drawText(`Data: ${today}`, { x: 50, y: 770, size: 12, font });
-
-    // Transcriere completă
-    page.drawText('Transcriere completă:', { x: 50, y: 740, size: 14, font: boldFont });
-    const textLines = text.split('\n').filter(line => line.trim());
-    let y = 720;
-    for (const line of textLines) {
-      page.drawText(line, { x: 50, y, size: 10, font });
-      y -= 15;
-      if (y < 50) {  // Adaugă pagină nouă dacă e prea lung
-        page = pdfDoc.addPage([595, 842]);
-        y = 790;
-      }
-    }
+    const fullText = transcription.text.trim() || 'Fără text detectat';
 
     // Rezumat structurat
-    page.drawText('Rezumat pe categorii:', { x: 50, y: y - 20, size: 14, font: boldFont });
-    y -= 20;
-    const summaryLines = summary.split('\n').filter(line => line.trim());
-    for (const line of summaryLines) {
-      page.drawText(line, { x: 50, y, size: 10, font });
-      y -= 15;
-      if (y < 50) {
-        page = pdfDoc.addPage([595, 842]);
-        y = 790;
-      }
-    }
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      temperature: 0.3,
+      messages: [
+        {
+          role: 'system',
+          content: `Ești asistent stomatologic. Extrage din transcriere doar următoarele categorii, în exact acest format:
 
-    // Salvează PDF și trimite înapoi
+Simptome:
+Observații din consultație:
+Diagnostic:
+Propuneri / Tratament recomandat:
+Urmărire / Recomandări suplimentare:
+
+Dacă o categorie lipsește complet, scrie: "Nu s-au identificat din dictare."`
+        },
+        { role: 'user', content: fullText },
+      ],
+    });
+
+    const summary = completion.choices[0].message.content.trim();
+
+    // Generează PDF simplu cu text
+    const { PDFDocument, StandardFonts, rgb } = await import('pdf-lib');
+
+    const pdfDoc = await PDFDocument.create();
+    const page = pdfDoc.addPage([595, 842]);
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const bold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+    let y = 780;
+    const draw = (text, size = 12, isBold = false) => {
+      page.drawText(text, { x: 50, y, size, font: isBold ? bold : font, color: rgb(0, 0, 0) });
+      y -= size + 6;
+    };
+
+    draw('Rezumat Consultație Stomatologică - Dentiq', 20, true);
+    draw(`Data: ${new Date().toLocaleDateString('ro-RO')}`, 12);
+    y -= 20;
+
+    draw('Transcriere completă:', 14, true);
+    fullText.match(/.{1,85}(\s|$)/g || [fullText]).forEach(line => draw(line.trim()));
+
+    y -= 20;
+    draw('Rezumat structurat:', 14, true);
+    summary.split('\n').forEach(line => {
+      const isCategory = line.includes(':');
+      draw(line.trim(), 12, isCategory);
+    });
+
     const pdfBytes = await pdfDoc.save();
+
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', 'attachment; filename=rezumat_consultatie.pdf');
-    return res.status(200).send(Buffer.from(pdfBytes));
+    res.setHeader('Content-Disposition', `attachment; filename=rezumat_${new Date().toISOString().slice(0,10)}.pdf`);
+    res.status(200).send(Buffer.from(pdfBytes));
+
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Eroare la procesare AI' });
+    console.error('Eroare în api/transcribe:', error);
+    res.status(500).json({ 
+      error: 'Eroare procesare AI', 
+      details: error.message 
+    });
   }
 }
