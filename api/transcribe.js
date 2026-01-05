@@ -1,23 +1,16 @@
-import { OpenAI } from 'openai';
+const { OpenAI } = require('openai');
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-export const config = {
-  api: {
-    bodyParser: false,
-    sizeLimit: '10mb',
-  },
-};
-
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    // Citește audio
+    // Citește audio buffer
     const buffers = [];
     for await (const chunk of req) {
       buffers.push(chunk);
@@ -44,7 +37,7 @@ export default async function handler(req, res) {
       messages: [
         {
           role: 'system',
-          content: `Ești asistent stomatologic. Extrage din transcriere doar următoarele categorii în acest format exact:
+          content: `Ești asistent stomatologic. Extrage din transcriere doar următoarele categorii în format exact:
 
 Simptome:
 Observații din consultație:
@@ -60,17 +53,10 @@ Dacă o categorie lipsește, scrie: "Nu s-au identificat din dictare."`
 
     const summary = completion.choices[0].message.content.trim();
 
-    // Returnează JSON cu textul
-    res.status(200).json({
-      fullText,
-      summary,
-    });
-
+    // Returnează JSON
+    res.status(200).json({ fullText, summary });
   } catch (error) {
-    console.error('Eroare backend:', error);
-    res.status(500).json({
-      error: 'Eroare procesare AI',
-      details: error.message,
-    });
+    console.error('Eroare:', error);
+    res.status(500).json({ error: error.message || 'Eroare procesare' });
   }
-}
+};
