@@ -3,25 +3,120 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Recorder Consultație | Dentiq</title>
+  <title>Asistentul tău Dentiq</title>
   <style>
-    /* Păstrează tot stilul tău vechi aici – copiază-l din vechiul index.html dacă e modificat */
-    /* ... (adaugă CSS-ul tău complet aici) ... */
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+    }
+    body {
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .container {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      padding: 30px 20px;
+      text-align: center;
+      max-width: 380px;
+      width: 90%;
+      max-height: 95vh;
+    }
+    h2 {
+      margin: 0 0 20px 0;
+      font-size: 1.5rem;
+      color: #4a5568;
+    }
+    #timer {
+      font-size: 48px;
+      font-weight: bold;
+      margin: 20px 0;
+      color: #2d3748;
+      height: 60px;
+      line-height: 60px;
+    }
+    .record-button {
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      border: none;
+      font-size: 48px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+      margin: 15px auto;
+    }
+    #start {
+      background: #48bb78;
+      color: white;
+      display: block;
+    }
+    #start:hover { background: #38a169; transform: scale(1.05); }
+    #stop {
+      background: #f56565;
+      color: white;
+      display: none;
+    }
+    #stop:hover { background: #e53e3e; transform: scale(1.05); }
+    .recording #stop { display: block; animation: pulse 1.5s infinite; }
+    .recording #start { display: none; }
+    .recording-indicator {
+      font-size: 20px;
+      color: #f56565;
+      margin: 15px 0;
+      display: none;
+    }
+    .recording .recording-indicator { display: block; }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(245, 101, 101, 0.7); }
+      70% { box-shadow: 0 0 0 20px rgba(245, 101, 101, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(245, 101, 101, 0); }
+    }
+    #preview {
+      margin-top: 20px;
+      width: 100%;
+      max-height: 80px;
+    }
+    .info {
+      margin-top: 20px;
+      font-size: 14px;
+      color: #718096;
+      line-height: 1.6;
+    }
+    #status {
+      margin-top: 15px;
+      font-size: 15px;
+      font-weight: bold;
+      min-height: 24px;
+    }
+    @media (max-height: 650px) {
+      .container { padding: 20px 15px; }
+      h2 { font-size: 1.3rem; }
+      #timer { font-size: 40px; height: 50px; line-height: 50px; }
+      .record-button { width: 90px; height: 90px; font-size: 40px; }
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>Recorder Consultație Medicală</h2>
+    <h2>Asistentul tău Dentiq</h2>
     <div id="timer">00:00</div>
     <button id="start" class="record-button" title="Începe înregistrare">🎤</button>
     <button id="stop" class="record-button" title="Oprește înregistrare">⏹</button>
     <div class="recording-indicator">● Înregistrare în desfășurare...</div>
     <audio id="preview" controls></audio>
+    <div id="status"></div>
     <div class="info">
-      Fișierul audio și PDF-ul cu rezumat se descarcă automat la oprire.<br>
-      La prima utilizare, permite accesul la microfon.
+      La oprirea înregistrării se descarcă automat:<br>
+      • Fișierul audio<br>
+      • PDF-ul cu transcrierea completă și rezumatul structurat (Simptome, Observații, Propuneri etc.)<br><br>
+      <strong>Confidențialitate:</strong> Dentiq nu salvează nimic. Totul rămâne doar pe dispozitivul tău.
     </div>
-    <div id="status" style="margin-top: 10px; color: blue;"></div>
   </div>
 
   <script>
@@ -34,47 +129,56 @@
       document.getElementById("timer").textContent = `${mins}:${secs}`;
     }
 
-    navigator.mediaDevices.getUserMedia({audio: true})
+    navigator.mediaDevices.getUserMedia({ audio: true })
       .then(stream => {
         recorder = new MediaRecorder(stream);
-        let chunks = [];
+        const chunks = [];
+
         recorder.ondataavailable = e => chunks.push(e.data);
+
         recorder.onstop = async () => {
-          audioBlob = new Blob(chunks, {type: "audio/webm"});
+          audioBlob = new Blob(chunks, { type: "audio/webm" });
           const audioUrl = URL.createObjectURL(audioBlob);
           document.getElementById("preview").src = audioUrl;
 
-          // Descărcare audio
-          const downloadAudio = document.createElement("a");
-          downloadAudio.href = audioUrl;
-          const today = new Date().toISOString().slice(0,10);
-          downloadAudio.download = `consultatie_${today}.webm`;
-          document.body.appendChild(downloadAudio);
-          downloadAudio.click();
-          document.body.removeChild(downloadAudio);
+          // 1. Descărcare automată audio
+          const today = new Date().toISOString().slice(0, 10);
+          const audioLink = document.createElement("a");
+          audioLink.href = audioUrl;
+          audioLink.download = `consultatie_${today}.webm`;
+          document.body.appendChild(audioLink);
+          audioLink.click();
+          document.body.removeChild(audioLink);
 
-          // Procesare AI și PDF
-          document.getElementById("status").textContent = "Procesare AI...";
+          // 2. Procesare AI → PDF
+          document.getElementById("status").textContent = "Se procesează cu AI... (poate dura 5-20 sec)";
+          document.getElementById("status").style.color = "#3182ce";
+
           try {
-            const response = await fetch('/api/transcribe', {
-              method: 'POST',
+            const response = await fetch("/api/transcribe", {
+              method: "POST",
               body: audioBlob,
+              headers: { "Content-Type": "audio/webm" }
             });
+
             if (response.ok) {
               const pdfBlob = await response.blob();
               const pdfUrl = URL.createObjectURL(pdfBlob);
-              const downloadPdf = document.createElement("a");
-              downloadPdf.href = pdfUrl;
-              downloadPdf.download = `rezumat_consultatie_${today}.pdf`;
-              document.body.appendChild(downloadPdf);
-              downloadPdf.click();
-              document.body.removeChild(downloadPdf);
-              document.getElementById("status").textContent = "Succes! PDF descărcat.";
+              const pdfLink = document.createElement("a");
+              pdfLink.href = pdfUrl;
+              pdfLink.download = `rezumat_consultatie_${today}.pdf`;
+              document.body.appendChild(pdfLink);
+              pdfLink.click();
+              document.body.removeChild(pdfLink);
+
+              document.getElementById("status").textContent = "Succes! PDF-ul a fost descărcat.";
+              document.getElementById("status").style.color = "#48bb78";
             } else {
-              throw new Error('Eroare API');
+              throw new Error("Răspuns eroare de la server");
             }
           } catch (err) {
-            document.getElementById("status").textContent = "Eroare AI – descarcă doar audio.";
+            document.getElementById("status").textContent = "Eroare AI – doar audio descărcat. Încearcă mai târziu.";
+            document.getElementById("status").style.color = "#f56565";
             console.error(err);
           }
 
@@ -85,7 +189,7 @@
         };
       })
       .catch(err => {
-        alert("Eroare: Nu s-a putut accesa microfonul. Verifică permisiunile în browser.");
+        alert("Trebuie să permiți accesul la microfon pentru a folosi asistentul.");
         console.error(err);
       });
 
@@ -95,6 +199,7 @@
       startTime = Date.now();
       timerInterval = setInterval(updateTimer, 1000);
       updateTimer();
+      document.getElementById("status").textContent = "";
     };
 
     document.getElementById("stop").onclick = () => {
