@@ -1,0 +1,8 @@
+{
+  "name": "dentiq-recorder",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "ai": "^3.4.0"
+  }
+}
