@@ -5,111 +5,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Asistentul tău Dentiq</title>
   <style>
-    html, body {
-      height: 100%;
-      margin: 0;
-      padding: 0;
-      font-family: "Segoe UI", Arial, sans-serif;
-    }
-    body {
-      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    .container {
-      background: white;
-      border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-      padding: 30px 20px;
-      text-align: center;
-      max-width: 380px;
-      width: 90%;
-      max-height: 95vh;
-      overflow-y: auto;
-    }
-    h2 {
-      margin: 0 0 20px 0;
-      font-size: 1.5rem;
-      color: #4a5568;
-    }
-    #timer {
-      font-size: 48px;
-      font-weight: bold;
-      margin: 20px 0;
-      color: #2d3748;
-    }
-    .record-button {
-      width: 110px;
-      height: 110px;
-      border-radius: 50%;
-      border: none;
-      font-size: 48px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-      margin: 15px auto;
-    }
-    #start {
-      background: #48bb78;
-      color: white;
-    }
+    html, body { height: 100%; margin: 0; padding: 0; font-family: "Segoe UI", Arial, sans-serif; }
+    body { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); display: flex; justify-content: center; align-items: center; }
+    .container { background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); padding: 30px 20px; text-align: center; max-width: 380px; width: 90%; max-height: 95vh; overflow-y: auto; }
+    h2 { margin: 0 0 20px 0; font-size: 1.5rem; color: #4a5568; }
+    #timer { font-size: 48px; font-weight: bold; margin: 20px 0; color: #2d3748; }
+    .record-button { width: 110px; height: 110px; border-radius: 50%; border: none; font-size: 48px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 8px 20px rgba(0,0,0,0.15); margin: 15px auto; }
+    #start { background: #48bb78; color: white; }
     #start:hover { background: #38a169; transform: scale(1.05); }
-    #stop {
-      background: #f56565;
-      color: white;
-      display: none;
-    }
+    #stop { background: #f56565; color: white; display: none; }
     #stop:hover { background: #e53e3e; transform: scale(1.05); }
     .recording #stop { display: block; animation: pulse 1.5s infinite; }
     .recording #start { display: none; }
-    .recording-indicator {
-      font-size: 20px;
-      color: #f56565;
-      margin: 15px 0;
-      display: none;
-    }
+    .recording-indicator { font-size: 20px; color: #f56565; margin: 15px 0; display: none; }
     .recording .recording-indicator { display: block; }
-    @keyframes pulse {
-      0% { box-shadow: 0 0 0 0 rgba(245, 101, 101, 0.7); }
-      70% { box-shadow: 0 0 0 20px rgba(245, 101, 101, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(245, 101, 101, 0); }
-    }
-    #preview {
-      margin-top: 20px;
-      width: 100%;
-    }
-    #status {
-      margin-top: 15px;
-      font-size: 15px;
-      font-weight: bold;
-      min-height: 24px;
-    }
-    #result {
-      margin-top: 20px;
-      text-align: left;
-    }
-    #result h3 {
-      margin: 15px 0 10px 0;
-      color: #48bb78;
-    }
-    #result p {
-      white-space: pre-wrap;
-      background: #f8f9fa;
-      padding: 15px;
-      border-radius: 10px;
-      margin: 0 0 20px 0;
-    }
-    #result p.summary {
-      background: #e6f4ea;
-      font-weight: 500;
-    }
-    .info {
-      margin-top: 20px;
-      font-size: 14px;
-      color: #718096;
-      line-height: 1.6;
-    }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(245, 101, 101, 0.7); } 70% { box-shadow: 0 0 0 20px rgba(245, 101, 101, 0); } 100% { box-shadow: 0 0 0 0 rgba(245, 101, 101, 0); } }
+    #preview { margin-top: 20px; width: 100%; }
+    #status { margin-top: 15px; font-size: 15px; font-weight: bold; min-height: 24px; }
+    #result { margin-top: 20px; text-align: left; }
+    #result h3 { margin: 15px 0 10px 0; color: #48bb78; }
+    #result p { white-space: pre-wrap; background: #f8f9fa; padding: 15px; border-radius: 10px; margin: 0 0 20px 0; }
+    #result p.summary { background: #e6f4ea; font-weight: 500; }
+    .info { margin-top: 20px; font-size: 14px; color: #718096; line-height: 1.6; }
   </style>
 </head>
 <body>
@@ -124,8 +41,8 @@
     <div id="result"></div>
     <div class="info">
       La oprire se descarcă automat fișierul audio.<br>
-      Transcrierea și rezumatul apar mai jos după procesare AI (5-20 sec).<br><br>
-      <strong>Confidențialitate totală:</strong> Nimic nu este salvat pe server.
+      Transcrierea și rezumatul apar mai jos (procesare AI în 5-20 sec).<br><br>
+      <strong>Confidențialitate:</strong> Nimic nu este salvat pe server. Totul rămâne pe dispozitivul tău.
     </div>
   </div>
 
@@ -151,7 +68,7 @@
           const audioUrl = URL.createObjectURL(audioBlob);
           document.getElementById("preview").src = audioUrl;
 
-          // Descărcare audio automat
+          // Descărcare audio
           const today = new Date().toISOString().slice(0, 10);
           const a = document.createElement("a");
           a.href = audioUrl;
@@ -166,30 +83,24 @@
           document.getElementById("result").innerHTML = "";
 
           try {
-            const response = await fetch("/api/transcribe", {
-              method: "POST",
-              body: audioBlob
-            });
+            const response = await fetch("/api/transcribe", { method: "POST", body: audioBlob });
 
-            if (!response.ok) {
-              const errText = await response.text();
-              throw new Error(errText || "Eroare server");
-            }
+            if (!response.ok) throw new Error("Eroare server");
 
-            const data = await response.json();
+            const { fullText, summary } = await response.json();
 
             document.getElementById("result").innerHTML = `
               <h3>Transcriere completă:</h3>
-              <p>${data.fullText || "Fără text detectat"}</p>
+              <p>${fullText || "Fără text"}</p>
               <h3>Rezumat structurat:</h3>
-              <p class="summary">${data.summary || "Fără rezumat"}</p>
+              <p class="summary">${summary || "Fără rezumat"}</p>
             `;
 
-            document.getElementById("status").textContent = "Succes!";
+            document.getElementById("status").textContent = "Gata!";
             document.getElementById("status").style.color = "#48bb78";
           } catch (err) {
-            document.getElementById("result").innerHTML = `<p style="color:#f56565;">Eroare AI: ${err.message}</p>`;
-            document.getElementById("status").textContent = "Eroare – doar audio salvat";
+            document.getElementById("result").innerHTML = `<p style="color:#f56565;">Eroare AI: Încearcă din nou.</p>`;
+            document.getElementById("status").textContent = "Doar audio salvat";
             document.getElementById("status").style.color = "#f56565";
           }
 
