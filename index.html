@@ -27,6 +27,18 @@
     #result p { white-space: pre-wrap; background: #f8f9fa; padding: 15px; border-radius: 10px; margin: 0 0 20px 0; }
     #result p.summary { background: #e6f4ea; font-weight: 500; }
     .info { margin-top: 20px; font-size: 14px; color: #718096; line-height: 1.6; }
+    #new-recording-btn { 
+      margin-top: 20px; 
+      padding: 12px 24px; 
+      background: #3182ce; 
+      color: white; 
+      border: none; 
+      border-radius: 10px; 
+      font-size: 16px; 
+      cursor: pointer; 
+      display: none; 
+    }
+    #new-recording-btn:hover { background: #2b6cb0; }
   </style>
 </head>
 <body>
@@ -39,9 +51,10 @@
     <audio id="preview" controls></audio>
     <div id="status"></div>
     <div id="result"></div>
+    <button id="new-recording-btn">Înregistrare nouă</button>
     <div class="info">
       La oprire se descarcă automat fișierul audio.<br>
-      Transcrierea și rezumatul apar mai jos (procesare AI în 5-20 sec).<br><br>
+      Transcrierea și rezumatul apar mai jos.<br><br>
       <strong>Confidențialitate:</strong> Nimic nu este salvat pe server. Totul rămâne pe dispozitivul tău.
     </div>
   </div>
@@ -54,6 +67,17 @@
       const mins = String(Math.floor(elapsed / 60)).padStart(2, "0");
       const secs = String(elapsed % 60).padStart(2, "0");
       document.getElementById("timer").textContent = `${mins}:${secs}`;
+    };
+
+    const resetForNewRecording = () => {
+      document.getElementById("preview").src = "";
+      document.getElementById("result").innerHTML = "";
+      document.getElementById("status").textContent = "";
+      document.getElementById("timer").textContent = "00:00";
+      document.getElementById("new-recording-btn").style.display = "none";
+      document.body.classList.remove("recording");
+      document.getElementById("start").style.display = "block";
+      document.getElementById("stop").style.display = "none";
     };
 
     navigator.mediaDevices.getUserMedia({ audio: true })
@@ -80,7 +104,6 @@
           // Procesare AI
           document.getElementById("status").textContent = "Se procesează cu AI...";
           document.getElementById("status").style.color = "#3182ce";
-          document.getElementById("result").innerHTML = "";
 
           try {
             const response = await fetch("/api/transcribe", { method: "POST", body: audioBlob });
@@ -104,9 +127,11 @@
             document.getElementById("status").style.color = "#f56565";
           }
 
+          // Arată butonul "Înregistrare nouă"
+          document.getElementById("new-recording-btn").style.display = "block";
+
           clearInterval(timerInterval);
           document.body.classList.remove("recording");
-          document.getElementById("timer").textContent = "00:00";
         };
       })
       .catch(() => alert("Permite accesul la microfon."));
@@ -119,9 +144,15 @@
       updateTimer();
       document.getElementById("status").textContent = "";
       document.getElementById("result").innerHTML = "";
+      document.getElementById("new-recording-btn").style.display = "none";
     };
 
     document.getElementById("stop").onclick = () => recorder.stop();
+
+    // Butonul "Înregistrare nouă"
+    document.getElementById("new-recording-btn").onclick = () => {
+      resetForNewRecording();
+    };
   </script>
 </body>
 </html>
