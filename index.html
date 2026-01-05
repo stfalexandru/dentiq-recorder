@@ -1,0 +1,163 @@
+<iframe srcdoc='
+  <!DOCTYPE html>
+  <html lang="ro">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recorder Consultație</title>
+    <style>
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        font-family: "Segoe UI", Arial, sans-serif;
+      }
+      body {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        padding: 30px 20px;
+        text-align: center;
+        max-width: 380px;
+        width: 90%;
+        max-height: 95vh;
+      }
+      h2 {
+        margin: 0 0 20px 0;
+        font-size: 1.4rem;
+        color: #4a5568;
+      }
+      #timer {
+        font-size: 42px;
+        font-weight: bold;
+        margin: 15px 0;
+        color: #2d3748;
+        height: 60px;
+        line-height: 60px;
+      }
+      .record-button {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        border: none;
+        font-size: 44px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        margin: 10px auto;
+      }
+      #start {
+        background: #48bb78;
+        color: white;
+        display: block;
+      }
+      #start:hover { background: #38a169; transform: scale(1.05); }
+      #stop {
+        background: #f56565;
+        color: white;
+        display: none;
+      }
+      #stop:hover { background: #e53e3e; transform: scale(1.05); }
+      .recording #stop { display: block; animation: pulse 1.5s infinite; }
+      .recording #start { display: none; }
+      .recording-indicator {
+        font-size: 20px;
+        color: #f56565;
+        margin: 10px 0;
+        display: none;
+      }
+      .recording .recording-indicator { display: block; }
+      @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(245, 101, 101, 0.7); }
+        70% { box-shadow: 0 0 0 20px rgba(245, 101, 101, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(245, 101, 101, 0); }
+      }
+      #preview {
+        margin-top: 20px;
+        width: 100%;
+        max-height: 80px;
+      }
+      .info {
+        margin-top: 15px;
+        font-size: 13px;
+        color: #718096;
+      }
+      /* Responsiv pentru ecrane foarte mici */
+      @media (max-height: 600px) {
+        .container { padding: 20px 15px; }
+        h2 { font-size: 1.2rem; margin-bottom: 15px; }
+        #timer { font-size: 36px; height: 50px; line-height: 50px; }
+        .record-button { width: 90px; height: 90px; font-size: 40px; }
+        #preview { max-height: 60px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Recorder Consultație Medicală</h2>
+      <div id="timer">00:00</div>
+      <button id="start" class="record-button" title="Începe înregistrare">🎤</button>
+      <button id="stop" class="record-button" title="Oprește înregistrare">⏹</button>
+      <div class="recording-indicator">● Înregistrare în desfășurare...</div>
+      <audio id="preview" controls></audio>
+      <div class="info">Fișierul audio se descarcă automat la oprire</div>
+    </div>
+
+    <script>
+      let recorder, audioBlob, startTime, timerInterval;
+
+      function updateTimer() {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        const mins = String(Math.floor(elapsed / 60)).padStart(2, "0");
+        const secs = String(elapsed % 60).padStart(2, "0");
+        document.getElementById("timer").textContent = `${mins}:${secs}`;
+      }
+
+      navigator.mediaDevices.getUserMedia({audio: true}).then(stream => {
+        recorder = new MediaRecorder(stream);
+        let chunks = [];
+        recorder.ondataavailable = e => chunks.push(e.data);
+        recorder.onstop = () => {
+          audioBlob = new Blob(chunks, {type: "audio/webm"});
+          const audioUrl = URL.createObjectURL(audioBlob);
+          document.getElementById("preview").src = audioUrl;
+
+          // Descărcare automată cu dată
+          const downloadLink = document.createElement("a");
+          downloadLink.href = audioUrl;
+          const today = new Date().toISOString().slice(0,10);
+          downloadLink.download = `consultatie_${today}.webm`;
+          document.body.appendChild(downloadLink);
+          downloadLink.click();
+          document.body.removeChild(downloadLink);
+
+          // Reset UI
+          clearInterval(timerInterval);
+          document.body.classList.remove("recording");
+          document.getElementById("timer").textContent = "00:00";
+        };
+      }).catch(err => {
+        alert("Trebuie să permiți accesul la microfon pentru a înregistra.");
+      });
+
+      document.getElementById("start").onclick = () => {
+        recorder.start();
+        document.body.classList.add("recording");
+        startTime = Date.now();
+        timerInterval = setInterval(updateTimer, 1000);
+        updateTimer();
+      };
+
+      document.getElementById("stop").onclick = () => {
+        recorder.stop();
+      };
+    </script>
+  </body>
+  </html>
+' height="700" width="100%" style="border:none;"></iframe>
