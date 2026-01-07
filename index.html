@@ -29,7 +29,6 @@
     .info { margin-top: 20px; font-size: 14px; color: #718096; line-height: 1.6; }
     #new-recording-btn { margin-top: 20px; padding: 12px 24px; background: #3182ce; color: white; border: none; border-radius: 10px; font-size: 16px; cursor: pointer; display: none; }
     #new-recording-btn:hover { background: #2b6cb0; }
-    /* Stil login */
     #login-container input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
     #login-container button { padding: 12px 24px; background: #48bb78; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; margin-top: 10px; }
     #login-container button:hover { background: #38a169; }
@@ -48,7 +47,7 @@
     <p id="error"></p>
   </div>
 
-  <!-- Recorder-ul tău (ascuns până la login) -->
+  <!-- Recorder-ul tău -->
   <div class="container" id="app" style="display: none;">
     <h2>Asistentul tău Dentiq</h2>
     <div id="timer">00:00</div>
@@ -67,12 +66,13 @@
   </div>
 
   <script>
-    // Lista de utilizatori (nume + parolă în clar – doar tu vezi în GitHub)
+    // Lista de utilizatori (nume + parolă – doar tu vezi în GitHub)
     const users = {
-      "alexandru": "1234",        // Contul tău
-      "razvan": "1234", // Exemplu medic
-      "medic1": "1234"      // Exemplu alt medic
-      // Adaugă aici medici noi: "ioana": "parolaEi"
+      "contact": "1234",
+      "alexandru": "1234",
+      "razvan": "1234",
+      "medic1": "1234"
+      // Adaugă aici medici noi: "nume": "parola"
     };
 
     document.getElementById("login-btn").addEventListener("click", () => {
@@ -88,7 +88,6 @@
         document.getElementById("login-container").style.display = "none";
         document.getElementById("app").style.display = "block";
 
-        // Recorder-ul tău (cod complet care mergea perfect)
         let recorder, audioBlob, startTime, timerInterval;
 
         const updateTimer = () => {
@@ -110,7 +109,6 @@
               const audioUrl = URL.createObjectURL(audioBlob);
               document.getElementById("preview").src = audioUrl;
 
-              // Download audio
               const today = new Date().toISOString().slice(0, 10);
               const a = document.createElement("a");
               a.href = audioUrl;
@@ -119,7 +117,6 @@
               a.click();
               document.body.removeChild(a);
 
-              // Procesare AI
               document.getElementById("status").textContent = "Se procesează cu AI...";
               document.getElementById("status").style.color = "#3182ce";
 
@@ -137,8 +134,8 @@
                   <p class="summary">${summary || "Fără rezumat"}</p>
                 `;
 
-                // .txt cu reclamă
-                const reclama = `\n\n\nȘtiai că?\n\nLaboratorul nostru de tehnică dentară DentIQ este specializat în lucrări All-on-X și oferă GARANȚIE PE VIAȚĂ pentru implanturi și proteze.\n\nSună-ne pentru o discuție amicală și o ofertă personalizată:\nTelefon: [număr]\nEmail: contact@dentiq.ro\nwww.dentiq.ro`;
+                // Reclama nouă în .txt
+                const reclama = `\n\n\nȘtiai că laboratorul nostru partener de tehnică dentară este specializat în lucrări All-on-X și oferă Garanție pe viață?\n\nSună-ne pentru o discuție amicală și o ofertă personalizată:\nTelefon: 0755156921\nEmail: contact@dentiq.ro\nwww.dentiq.ro`;
 
                 const txtContent = `TRANSCEIERE COMPLETĂ:\n\n${fullText}\n\nREZUMAT STRUCTURAT:\n\n${summary}${reclama}`;
                 const txtBlob = new Blob([txtContent], { type: "text/plain;charset=utf-8" });
