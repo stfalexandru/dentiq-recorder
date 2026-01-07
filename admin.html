@@ -6,49 +6,65 @@
   <title>Admin DentIQ - Dashboard privat</title>
   <style>
     body { font-family: "Segoe UI", Arial, sans-serif; background: #f4f6f9; padding: 40px; }
-    .container { max-width: 700px; margin: auto; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+    .container { max-width: 800px; margin: auto; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
     h2 { color: #4a5568; text-align: center; margin-bottom: 30px; }
-    ul { list-style: none; padding: 0; }
-    li { background: #f8f9fa; padding: 20px; margin: 15px 0; border-radius: 10px; font-size: 18px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+    th { background: #48bb78; color: white; }
     .info { margin-top: 40px; font-size: 15px; color: #718096; line-height: 1.6; background: #e6f4ea; padding: 20px; border-radius: 10px; }
-    a { color: #48bb78; text-decoration: none; }
-    a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
   <div class="container">
     <h2>Admin DentIQ - Dashboard privat</h2>
 
-    <h3>Utilizatori activi în aplicație (record.dentiq.ro)</h3>
-    <ul id="user-list">
-      <!-- Lista se completează automat din codul aplicației -->
-    </ul>
+    <h3>Statistici utilizare (logări + înregistrări)</h3>
+    <table id="stats-table">
+      <thead>
+        <tr>
+          <th>Data/ora</th>
+          <th>Utilizator</th>
+          <th>Acțiune</th>
+          <th>Durată (sec)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Se completează cu JS -->
+      </tbody>
+    </table>
 
     <div class="info">
-      <p><strong>Instrucțiuni pentru tine:</strong></p>
-      <p>Pentru a adăuga un medic nou, spune-mi numele dorit (ex. „mihai”) și parola pe care vrei să i-o dai.</p>
-      <p>Îți dau linia exactă de cod să o adaugi în index.html → commit → medic nou gata de login.</p>
-      <p>Link aplicație medici: <a href="https://record.dentiq.ro" target="_blank">https://record.dentiq.ro</a></p>
-      <p>Statistici detaliate (câte înregistrări, durată per user) vor fi adăugate când vrei.</p>
+      <p><strong>Instrucțiuni:</strong></p>
+      <p>Pentru a adăuga un medic nou, spune-mi numele + parola dorită → îți dau linia de cod să o pui în index.html.</p>
+      <p>Link aplicație medici: <a href="https://record.dentiq.ro" target="_blank">record.dentiq.ro</a></p>
     </div>
   </div>
 
   <script>
-    // Lista utilizatorilor din index.html (copiată manual – o actualizez când adaugi medici)
-    const users = {
-      "contact": "1234",
-      "alexandru": "1234",
-      "razvan": "1234",
-      "medic1": "1234"
-      // Adaugă aici medicii pe care i-ai pus în index.html
-    };
+    async function loadStats() {
+      try {
+        const response = await fetch('/api/get-stats');
+        if (!response.ok) throw new Error();
+        const stats = await response.json();
 
-    const list = document.getElementById("user-list");
-    for (const [user, pwd] of Object.entries(users)) {
-      const li = document.createElement("li");
-      li.textContent = `Utilizator: ${user} (parolă setată)`;
-      list.appendChild(li);
+        const tbody = document.querySelector("#stats-table tbody");
+        tbody.innerHTML = "";
+        stats.reverse().forEach(entry => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${entry.timestamp.slice(0,19).replace('T', ' ')}</td>
+            <td>${entry.user}</td>
+            <td>${entry.type === 'login' ? 'Login' : 'Înregistrare'}</td>
+            <td>${entry.duration || '-'}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        document.querySelector("#stats-table tbody").innerHTML = "<tr><td colspan='4'>Încă nu sunt statistici</td></tr>";
+      }
     }
+
+    loadStats();
   </script>
 </body>
 </html>
