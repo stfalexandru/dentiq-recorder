@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin DentIQ - Statistici</title>
+  <style>
+    body { font-family: "Segoe UI", Arial, sans-serif; background: #f4f6f9; padding: 40px; }
+    .container { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+    h2 { color: #4a5568; }
+    input { padding: 10px; width: 250px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
+    button { padding: 10px 20px; background: #48bb78; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    button:hover { background: #38a169; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+    th { background: #48bb78; color: white; }
+    #error { color: #f56565; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Admin DentIQ - Acces privat</h2>
+    <input type="password" id="admin-pass" placeholder="Parolă admin">
+    <button onclick="checkAdmin()">Intră</button>
+    <p id="error"></p>
+
+    <div id="stats" style="display:none;">
+      <h2>Statistici utilizatori</h2>
+      <p>Aici vei vedea în viitor: cine s-a logat, câte înregistrări, durata etc.</p>
+      <p>(Vom adăuga salvarea statisticilor când vrei)</p>
+      <h3>Utilizatori actuali (din cod):</h3>
+      <ul id="user-list"></ul>
+    </div>
+  </div>
+
+  <script>
+    const ADMIN_PASSWORD = "parola1234"; // Schimbă cu parola ta reală (doar tu o vezi)
+
+    function checkAdmin() {
+      const pass = document.getElementById("admin-pass").value;
+      if (pass === ADMIN_PASSWORD) {
+        document.getElementById("error").textContent = "";
+        document.getElementById("stats").style.display = "block";
+
+        // Afișează utilizatorii actuali din cod (doar pentru tine)
+        const users = {
+          "contact": "1234",
+          // Aici apar medicii pe care i-ai adăugat în index.html
+        };
+
+        const list = document.getElementById("user-list");
+        for (const [user, pwd] of Object.entries(users)) {
+          const li = document.createElement("li");
+          li.textContent = `Utilizator: ${user} (parolă setată)`;
+          list.appendChild(li);
+        }
+      } else {
+        document.getElementById("error").textContent = "Parolă incorectă";
+      }
+    }
+  </script>
+</body>
+</html>
