@@ -15,7 +15,7 @@ export default async function handler(req, res) {
   try {
     let stats = [];
     try {
-      const { data } = await octokit.request('GET /repos/{owner}/{repo}/contents/{path}', {
+      const { data } = await octokit.rest.repos.getContent({
         owner, repo, path
       });
       const content = Buffer.from(data.content, 'base64').toString();
@@ -30,16 +30,18 @@ export default async function handler(req, res) {
 
     const content = Buffer.from(JSON.stringify(stats, null, 2)).toString('base64');
 
-    await octokit.request('PUT /repos/{owner}/{repo}/contents/{path}', {
+    const sha = stats.length > 0 ? (await octokit.rest.repos.getContent({ owner, repo, path })).data.sha : undefined;
+
+    await octokit.rest.repos.createOrUpdateFileContents({
       owner, repo, path,
       message: 'Update stats',
       content,
-      sha: stats.sha || undefined // dacă există fișier vechi
+      sha
     });
 
     res.status(200).json({ success: true });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Eroare salvare' });
+    res.status(500).json({ error: 'Eroare salvare stats' });
   }
 }
