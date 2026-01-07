@@ -37,7 +37,7 @@
 </head>
 <body>
 
-  <!-- Pagina de login -->
+  <!-- Login -->
   <div class="container" id="login-container">
     <h2>Bine ai venit la Asistentul DentIQ</h2>
     <p>Introdu datele de acces furnizate</p>
@@ -47,7 +47,7 @@
     <p id="error"></p>
   </div>
 
-  <!-- Recorder-ul tău -->
+  <!-- Recorder -->
   <div class="container" id="app" style="display: none;">
     <h2>Asistentul tău Dentiq</h2>
     <div id="timer">00:00</div>
@@ -66,16 +66,16 @@
   </div>
 
   <script>
-    // Lista de utilizatori (nume + parolă în clar – doar tu vezi în GitHub)
+    // Lista de utilizatori
     const users = {
       "contact": "1234",
       "alexandru": "1234",
       "razvan": "1234",
       "medic1": "1234"
-      // Adaugă aici medici noi: "mihai": "parolaLui123"
+      // Adaugă medici noi aici
     };
 
-    let currentUser = ""; // Salvăm userul după login pentru statistici
+    let currentUser = "";
 
     document.getElementById("login-btn").addEventListener("click", async () => {
       const username = document.getElementById("username").value.trim();
@@ -87,7 +87,7 @@
       }
 
       if (users[username] && users[username] === password) {
-        currentUser = username; // Salvăm userul pentru statistici
+        currentUser = username;
 
         // Trimite stat login
         await fetch('/api/stats', {
@@ -129,7 +129,6 @@
               document.body.removeChild(a);
 
               document.getElementById("status").textContent = "Se procesează cu AI...";
-              document.getElementById("status").style.color = "#3182ce";
 
               try {
                 const response = await fetch("/api/transcribe", { method: "POST", body: audioBlob });
@@ -145,7 +144,6 @@
                   <p class="summary">${summary || "Fără rezumat"}</p>
                 `;
 
-                // Reclama în .txt
                 const reclama = `\n\n\nȘtiai că laboratorul nostru partener de tehnică dentară este specializat în lucrări All-on-X și oferă Garanție pe viață?\n\nSună-ne pentru o discuție amicală și o ofertă personalizată:\nTelefon: 0755156921\nEmail: contact@dentiq.ro\nwww.dentiq.ro`;
 
                 const txtContent = `TRANSCEIERE COMPLETĂ:\n\n${fullText}\n\nREZUMAT STRUCTURAT:\n\n${summary}${reclama}`;
