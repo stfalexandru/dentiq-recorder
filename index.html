@@ -29,6 +29,7 @@
     .info { margin-top: 20px; font-size: 14px; color: #718096; line-height: 1.6; }
     #new-recording-btn { margin-top: 20px; padding: 12px 24px; background: #3182ce; color: white; border: none; border-radius: 10px; font-size: 16px; cursor: pointer; display: none; }
     #new-recording-btn:hover { background: #2b6cb0; }
+    /* Stil login */
     #login-container input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
     #login-container button { padding: 12px 24px; background: #48bb78; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; margin-top: 10px; }
     #login-container button:hover { background: #38a169; }
@@ -40,8 +41,8 @@
   <!-- Pagina de login -->
   <div class="container" id="login-container">
     <h2>Bine ai venit la Asistentul DentIQ</h2>
-    <p>Introdu numele de utilizator și parola furnizate</p>
-    <input type="text" id="username" placeholder="Nume utilizator (ex. alexandru)" required>
+    <p>Introdu datele de acces furnizate de DentIQ</p>
+    <input type="text" id="username" placeholder="Nume utilizator" required>
     <input type="password" id="password" placeholder="Parolă" required>
     <button id="login-btn">Intră în asistent</button>
     <p id="error"></p>
@@ -68,24 +69,26 @@
   <script>
     // Lista de utilizatori (nume + parolă în clar – doar tu vezi în GitHub)
     const users = {
-      "alexandru": "parola123",  // Exemplu: nume "alexandru", parolă "parola123"
-      "contact": "1234"          // Contul tău de test
-      // Adaugă medici noi aici: "mihai": "parolaLui", "ioana": "altaParola"
+      "contact": "1234",        // Contul tău de test
+      "alexandru": "parolaLui", // Exemplu medic
+      "mihai": "altaParola"     // Exemplu alt medic
+      // Adaugă aici medicii noi: "numeleLui": "parolaLui"
     };
 
-    document.getElementById('login-btn').addEventListener('click', () => {
-      const username = document.getElementById('username').value.trim();
-      const password = document.getElementById('password').value;
+    document.getElementById("login-btn").addEventListener("click", () => {
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value;
 
       if (!username || !password) {
-        document.getElementById('error').textContent = 'Completează ambele câmpuri';
+        document.getElementById("error").textContent = "Completează ambele câmpuri";
         return;
       }
 
       if (users[username] && users[username] === password) {
-        document.getElementById('login-container').style.display = 'none';
-        document.getElementById('app').style.display = 'block';
-        // Inițializează recorder-ul tău existent
+        document.getElementById("login-container").style.display = "none";
+        document.getElementById("app").style.display = "block";
+
+        // Recorder-ul tău (codul complet care mergea perfect)
         let recorder, audioBlob, startTime, timerInterval;
 
         const updateTimer = () => {
@@ -107,6 +110,7 @@
               const audioUrl = URL.createObjectURL(audioBlob);
               document.getElementById("preview").src = audioUrl;
 
+              // Download audio
               const today = new Date().toISOString().slice(0, 10);
               const a = document.createElement("a");
               a.href = audioUrl;
@@ -115,6 +119,7 @@
               a.click();
               document.body.removeChild(a);
 
+              // Procesare AI
               document.getElementById("status").textContent = "Se procesează cu AI...";
               document.getElementById("status").style.color = "#3182ce";
 
@@ -132,6 +137,7 @@
                   <p class="summary">${summary || "Fără rezumat"}</p>
                 `;
 
+                // .txt cu reclamă
                 const reclama = `\n\n\nȘtiai că?\n\nLaboratorul nostru de tehnică dentară DentIQ este specializat în lucrări All-on-X și oferă GARANȚIE PE VIAȚĂ pentru implanturi și proteze.\n\nSună-ne pentru o discuție amicală și o ofertă personalizată:\nTelefon: [număr]\nEmail: contact@dentiq.ro\nwww.dentiq.ro`;
 
                 const txtContent = `TRANSCEIERE COMPLETĂ:\n\n${fullText}\n\nREZUMAT STRUCTURAT:\n\n${summary}${reclama}`;
@@ -175,7 +181,7 @@
 
         document.getElementById("new-recording-btn").onclick = () => location.reload();
       } else {
-        document.getElementById('error').textContent = 'Nume utilizator sau parolă incorectă';
+        document.getElementById("error").textContent = "Nume utilizator sau parolă incorectă";
       }
     });
   </script>
