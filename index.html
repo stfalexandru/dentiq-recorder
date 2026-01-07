@@ -98,8 +98,10 @@
               <p class="summary">${summary || "Fără rezumat"}</p>
             `;
 
-            // Salvează .txt automat
-            const txtContent = `TRANSCEIERE COMPLETĂ:\n\n${fullText}\n\nREZUMAT STRUCTURAT:\n\n${summary}`;
+                       // Salvează .txt cu reclamă la final
+            const reclama = `\n\n\nȘtiai că?\n\nLaboratorul nostru de tehnică dentară partener este specializat în lucrări All-on-X și oferă GARANȚIE PE VIAȚĂ?\n\nSună-ne pentru o discuție amicală și o ofertă personalizată:\nTelefon: 0755156921\nEmail: contact@dentiq.ro\nwww.dentiq.ro`;
+
+            const txtContent = `TRANSCEIERE COMPLETĂ:\n\n${fullText}\n\nREZUMAT STRUCTURAT:\n\n${summary}${reclama}`;
             const txtBlob = new Blob([txtContent], { type: "text/plain;charset=utf-8" });
             const txtUrl = URL.createObjectURL(txtBlob);
             const txtLink = document.createElement("a");
