@@ -4,7 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Asistentul tău Dentiq</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
+    /* Tot stilul tău frumos anterior */
     html, body { height: 100%; margin: 0; padding: 0; font-family: "Segoe UI", Arial, sans-serif; }
     body { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); display: flex; justify-content: center; align-items: center; }
     .container { background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); padding: 30px 20px; text-align: center; max-width: 380px; width: 90%; max-height: 95vh; overflow-y: auto; }
@@ -29,7 +31,6 @@
     .info { margin-top: 20px; font-size: 14px; color: #718096; line-height: 1.6; }
     #new-recording-btn { margin-top: 20px; padding: 12px 24px; background: #3182ce; color: white; border: none; border-radius: 10px; font-size: 16px; cursor: pointer; display: none; }
     #new-recording-btn:hover { background: #2b6cb0; }
-    /* Stil login */
     #login-container input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
     #login-container button { padding: 12px 24px; background: #48bb78; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; margin-top: 10px; }
     #login-container button:hover { background: #38a169; }
@@ -38,17 +39,17 @@
 </head>
 <body>
 
-  <!-- Pagina de login -->
+  <!-- Login -->
   <div class="container" id="login-container">
     <h2>Bine ai venit la Asistentul DentIQ</h2>
-    <p>Introdu datele de acces furnizate de DentIQ</p>
+    <p>Introdu numele de utilizator și parola</p>
     <input type="text" id="username" placeholder="Nume utilizator" required>
     <input type="password" id="password" placeholder="Parolă" required>
-    <button id="login-btn">Intră în asistent</button>
+    <button id="login-btn">Intră</button>
     <p id="error"></p>
   </div>
 
-  <!-- Recorder-ul tău (ascuns până la login) -->
+  <!-- Recorder -->
   <div class="container" id="app" style="display: none;">
     <h2>Asistentul tău Dentiq</h2>
     <div id="timer">00:00</div>
@@ -60,22 +61,19 @@
     <div id="result"></div>
     <button id="new-recording-btn">Înregistrare nouă</button>
     <div class="info">
-      La oprire se descarcă automat audio + fișier text (.txt).<br>
+      La oprire se descarcă automat audio + text (.txt).<br>
       Textul apare mai jos pentru verificare.<br><br>
       <strong>Confidențialitate:</strong> Nimic nu este salvat pe server.
     </div>
   </div>
 
   <script>
-    // Lista de utilizatori (nume + parolă în clar – doar tu vezi în GitHub)
-    const users = {
-      "contact": "1234",        // Contul tău de test
-      "alexandru": "parolaLui", // Exemplu medic
-      "mihai": "altaParola"     // Exemplu alt medic
-      // Adaugă aici medicii noi: "numeleLui": "parolaLui"
-    };
+    const supabase = supabase.createClient(
+      'https://rnfymbsucywjzsugaqiz.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJuZnltYnN1Y3l3anpzZ3VhcWl6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzc2NDkwNTMsImV4cCI6MjA5MzIyNTA1M30.L2g3z3z3z3z3z3z3z3z3z3z3z3z3z3z3z3z3z3z3z3'
+    );
 
-    document.getElementById("login-btn").addEventListener("click", () => {
+    document.getElementById("login-btn").addEventListener("click", async () => {
       const username = document.getElementById("username").value.trim();
       const password = document.getElementById("password").value;
 
@@ -84,11 +82,22 @@
         return;
       }
 
-      if (users[username] && users[username] === password) {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('username', username)
+        .single();
+
+      if (error || !data) {
+        document.getElementById("error").textContent = "Nume utilizator sau parolă incorectă";
+        return;
+      }
+
+      if (data.password_hash === password) {
         document.getElementById("login-container").style.display = "none";
         document.getElementById("app").style.display = "block";
 
-        // Recorder-ul tău (codul complet care mergea perfect)
+        // Recorder-ul tău (cod complet)
         let recorder, audioBlob, startTime, timerInterval;
 
         const updateTimer = () => {
@@ -110,7 +119,6 @@
               const audioUrl = URL.createObjectURL(audioBlob);
               document.getElementById("preview").src = audioUrl;
 
-              // Download audio
               const today = new Date().toISOString().slice(0, 10);
               const a = document.createElement("a");
               a.href = audioUrl;
@@ -119,7 +127,6 @@
               a.click();
               document.body.removeChild(a);
 
-              // Procesare AI
               document.getElementById("status").textContent = "Se procesează cu AI...";
               document.getElementById("status").style.color = "#3182ce";
 
@@ -137,7 +144,6 @@
                   <p class="summary">${summary || "Fără rezumat"}</p>
                 `;
 
-                // .txt cu reclamă
                 const reclama = `\n\n\nȘtiai că?\n\nLaboratorul nostru de tehnică dentară DentIQ este specializat în lucrări All-on-X și oferă GARANȚIE PE VIAȚĂ pentru implanturi și proteze.\n\nSună-ne pentru o discuție amicală și o ofertă personalizată:\nTelefon: [număr]\nEmail: contact@dentiq.ro\nwww.dentiq.ro`;
 
                 const txtContent = `TRANSCEIERE COMPLETĂ:\n\n${fullText}\n\nREZUMAT STRUCTURAT:\n\n${summary}${reclama}`;
