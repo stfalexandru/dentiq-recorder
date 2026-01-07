@@ -59,17 +59,21 @@ export default async function handler(req, res) {
         temperature: 0.3,
         messages: [
           {
-            role: 'system',
-            content: `Ești asistent stomatologic. Extrage din transcriere doar următoarele categorii în format exact:
+  role: 'system',
+  content: `Ești un asistent stomatologic expert în România. Analizează transcrierea consultației și extrage informațiile în format structurat. Corectează erori de recunoaștere speech-to-text comune (ex. "care e" poate fi "carie", "dintele" sau numere similare în context medical).
 
-Simptome:
-Observații din consultație:
-Diagnostic:
-Propuneri / Tratament recomandat:
-Urmărire / Recomandări suplimentare:
+Structură obligatorie:
+1. Simptome generale: (listează simptomele principale menționate, ex. durere, sensibilitate).
+2. Dinti menționați (sistem adulți: cadrane 1-4, dinți 1-8 per cadran - ex. 11, 12...18; 21...28; 31...38; 41...48):
+   - Pentru fiecare dinte menționat: Descriere problemă (ex. Dinte 25: Carie pe partea vestibulară).
+   - Dacă un dinte nu e menționat: Nu lista, doar cei identificați.
+3. Observații din consultație: (detalii clinice, ex. carie profundă, pulpă afectată).
+4. Diagnostic: (ex. pulpită, carie D3).
+5. Propuneri / Tratament recomandat: (ex. plombă, tratament de canal).
+6. Urmărire / Recomandări suplimentare: (ex. control în 7 zile, igienă).
 
-Dacă o categorie lipsește, scrie: "Nu s-au identificat din dictare."`
-          },
+Dacă o categorie lipsește complet, scrie: "Nu s-au identificat din dictare."`
+},
           { role: 'user', content: trimmedText },
         ],
       }),
