@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Asistentul tău Dentiq</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     html, body { height: 100%; margin: 0; padding: 0; font-family: "Segoe UI", Arial, sans-serif; }
     body { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); display: flex; justify-content: center; align-items: center; }
@@ -30,7 +29,6 @@
     .info { margin-top: 20px; font-size: 14px; color: #718096; line-height: 1.6; }
     #new-recording-btn { margin-top: 20px; padding: 12px 24px; background: #3182ce; color: white; border: none; border-radius: 10px; font-size: 16px; cursor: pointer; display: none; }
     #new-recording-btn:hover { background: #2b6cb0; }
-    #pdf-content { display: none; } /* Ascuns, doar pentru generare PDF */
   </style>
 </head>
 <body>
@@ -45,27 +43,10 @@
     <div id="result"></div>
     <button id="new-recording-btn">Înregistrare nouă</button>
     <div class="info">
-      La oprire se descarcă automat audio + PDF.<br>
+      La oprire se descarcă automat audio + fișier text (.txt).<br>
       Textul apare mai jos pentru verificare.<br><br>
       <strong>Confidențialitate:</strong> Nimic nu este salvat pe server.
     </div>
-  </div>
-
-  <!-- Div ascuns pentru PDF -->
-  <div id="pdf-content">
-    <div style="text-align: center; margin-bottom: 20px;">
-      <img src="https://static.wixstatic.com/media/d8e0f5_baf5a39b63e047789999751ec53d48be~mv2.png/v1/fill/w_258,h_108,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/logo%20DentIQ.png" width="200" alt="DentIQ Logo">
-    </div>
-    <h1 style="text-align: center;">Rezumat Consultație Stomatologică - DentIQ</h1>
-    <p style="text-align: center;">Data: <span id="pdf-date"></span></p>
-    <h2>Transcriere completă:</h2>
-    <p id="pdf-fulltext" style="white-space: pre-wrap;"></p>
-    <h2>Rezumat structurat:</h2>
-    <p id="pdf-summary" style="white-space: pre-wrap;"></p>
-    <p style="position: absolute; bottom: 30px; left: 50px; font-size: 10px;">
-      Acest soft a fost creat și este oferit gratuit de www.dentiq.ro,<br>
-      cu ajutorul lui Ștefan Alexandru Florin.
-    </p>
   </div>
 
   <script>
@@ -110,7 +91,6 @@
 
             const { fullText, summary } = await response.json();
 
-            // Afișează pe pagină
             document.getElementById("result").innerHTML = `
               <h3>Transcriere completă:</h3>
               <p>${fullText || "Fără text"}</p>
@@ -118,24 +98,18 @@
               <p class="summary">${summary || "Fără rezumat"}</p>
             `;
 
-            // Pregătește PDF
-            document.getElementById("pdf-date").textContent = new Date().toLocaleDateString('ro-RO');
-            document.getElementById("pdf-fulltext").textContent = fullText;
-            document.getElementById("pdf-summary").textContent = summary;
+            // Salvează .txt automat
+            const txtContent = `TRANSCEIERE COMPLETĂ:\n\n${fullText}\n\nREZUMAT STRUCTURAT:\n\n${summary}`;
+            const txtBlob = new Blob([txtContent], { type: "text/plain;charset=utf-8" });
+            const txtUrl = URL.createObjectURL(txtBlob);
+            const txtLink = document.createElement("a");
+            txtLink.href = txtUrl;
+            txtLink.download = `rezumat_consultatie_${today}.txt`;
+            document.body.appendChild(txtLink);
+            txtLink.click();
+            document.body.removeChild(txtLink);
 
-            // Generează și descarcă PDF cu html2pdf
-            const element = document.getElementById("pdf-content");
-            const opt = {
-              margin: 10,
-              filename: `rezumat_consultatie_${today}.pdf`,
-              image: { type: 'jpeg', quality: 0.98 },
-              html2canvas: { scale: 2 },
-              jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-
-            html2pdf().set(opt).from(element).save();
-
-            document.getElementById("status").textContent = "Gata! Audio + PDF descărcate.";
+            document.getElementById("status").textContent = "Gata! Audio + text salvate.";
             document.getElementById("status").style.color = "#48bb78";
           } catch (err) {
             document.getElementById("result").innerHTML = `<p style="color:#f56565;">Eroare AI: Încearcă din nou.</p>`;
