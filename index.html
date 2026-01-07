@@ -66,17 +66,18 @@
   </div>
 
   <script>
-    // Lista de utilizatori (nume + parolă – doar tu vezi în GitHub)
+    // Lista de utilizatori (nume + parolă în clar – doar tu vezi în GitHub)
     const users = {
       "contact": "1234",
       "alexandru": "1234",
       "razvan": "1234",
-      "razvank": "1234",
       "medic1": "1234"
-      // Adaugă aici medici noi: "nume": "parola"
+      // Adaugă aici medici noi: "mihai": "parolaLui123"
     };
 
-    document.getElementById("login-btn").addEventListener("click", () => {
+    let currentUser = ""; // Salvăm userul după login pentru statistici
+
+    document.getElementById("login-btn").addEventListener("click", async () => {
       const username = document.getElementById("username").value.trim();
       const password = document.getElementById("password").value;
 
@@ -86,6 +87,15 @@
       }
 
       if (users[username] && users[username] === password) {
+        currentUser = username; // Salvăm userul pentru statistici
+
+        // Trimite stat login
+        await fetch('/api/stats', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'login', user: currentUser })
+        });
+
         document.getElementById("login-container").style.display = "none";
         document.getElementById("app").style.display = "block";
 
@@ -135,7 +145,7 @@
                   <p class="summary">${summary || "Fără rezumat"}</p>
                 `;
 
-                // Reclama nouă în .txt
+                // Reclama în .txt
                 const reclama = `\n\n\nȘtiai că laboratorul nostru partener de tehnică dentară este specializat în lucrări All-on-X și oferă Garanție pe viață?\n\nSună-ne pentru o discuție amicală și o ofertă personalizată:\nTelefon: 0755156921\nEmail: contact@dentiq.ro\nwww.dentiq.ro`;
 
                 const txtContent = `TRANSCEIERE COMPLETĂ:\n\n${fullText}\n\nREZUMAT STRUCTURAT:\n\n${summary}${reclama}`;
@@ -147,6 +157,14 @@
                 document.body.appendChild(txtLink);
                 txtLink.click();
                 document.body.removeChild(txtLink);
+
+                // Trimite stat înregistrare
+                const duration = Math.floor((Date.now() - startTime) / 1000);
+                await fetch('/api/stats', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ type: 'recording', user: currentUser, duration })
+                });
 
                 document.getElementById("status").textContent = "Gata! Audio + text salvate.";
                 document.getElementById("status").style.color = "#48bb78";
