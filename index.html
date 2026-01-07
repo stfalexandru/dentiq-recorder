@@ -6,7 +6,7 @@
   <title>Asistentul tău Dentiq</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    /* Tot stilul tău frumos anterior - copiat exact */
+    /* Stilul tău frumos anterior */
     html, body { height: 100%; margin: 0; padding: 0; font-family: "Segoe UI", Arial, sans-serif; }
     body { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); display: flex; justify-content: center; align-items: center; }
     .container { background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); padding: 30px 20px; text-align: center; max-width: 380px; width: 90%; max-height: 95vh; overflow-y: auto; }
@@ -41,10 +41,10 @@
 
   <div class="container" id="login-container">
     <h2>Bine ai venit la Asistentul DentIQ</h2>
-    <p>Introdu datele de acces furnizate</p>
+    <p>Introdu datele de acces</p>
     <input type="email" id="email" placeholder="Email" required>
     <input type="password" id="password" placeholder="Parolă" required>
-    <button id="login-btn">Intră în asistent</button>
+    <button id="login-btn">Intră</button>
     <p id="error"></p>
   </div>
 
@@ -59,9 +59,8 @@
     <div id="result"></div>
     <button id="new-recording-btn">Înregistrare nouă</button>
     <div class="info">
-      La oprire se descarcă automat audio + fișier text (.txt).<br>
-      Textul apare mai jos pentru verificare.<br><br>
-      <strong>Confidențialitate:</strong> Nimic nu este salvat pe server.
+      La oprire se descarcă automat audio + text (.txt).<br>
+      Textul apare mai jos.
     </div>
   </div>
 
@@ -72,13 +71,8 @@
     );
 
     document.getElementById('login-btn').addEventListener('click', async () => {
-      console.log("Buton apăsat – încep login");
-
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
-
-      console.log("Email introdus:", email);
-      console.log("Parolă introdusă:", password);
 
       if (!email || !password) {
         document.getElementById('error').textContent = 'Completează ambele câmpuri';
@@ -87,12 +81,9 @@
 
       const { data, error } = await supabase
         .from('users')
-        .select('*')
+        .select('password_hash')
         .eq('email', email)
         .single();
-
-      console.log("Răspuns Supabase data:", data);
-      console.log("Răspuns Supabase error:", error);
 
       if (error || !data) {
         document.getElementById('error').textContent = 'Email sau parolă incorectă';
@@ -104,11 +95,10 @@
         return;
       }
 
-      console.log("Login reușit!");
       document.getElementById('login-container').style.display = 'none';
       document.getElementById('app').style.display = 'block';
 
-      // Recorder-ul tău (codul complet existent)
+      // Recorder-ul tău (codul complet)
       let recorder, audioBlob, startTime, timerInterval;
 
       const updateTimer = () => {
@@ -139,40 +129,34 @@
             document.body.removeChild(a);
 
             document.getElementById("status").textContent = "Se procesează cu AI...";
-            document.getElementById("status").style.color = "#3182ce";
 
             try {
               const response = await fetch("/api/transcribe", { method: "POST", body: audioBlob });
 
-              if (!response.ok) throw new Error("Eroare server");
+              if (!response.ok) throw new Error("Eroare");
 
               const { fullText, summary } = await response.json();
 
               document.getElementById("result").innerHTML = `
                 <h3>Transcriere completă:</h3>
-                <p>${fullText || "Fără text"}</p>
+                <p>${fullText}</p>
                 <h3>Rezumat structurat:</h3>
-                <p class="summary">${summary || "Fără rezumat"}</p>
+                <p class="summary">${summary}</p>
               `;
 
-              const reclama = `\n\n\nȘtiai că?\n\nLaboratorul nostru de tehnică dentară DentIQ este specializat în lucrări All-on-X și oferă GARANȚIE PE VIAȚĂ pentru implanturi și proteze.\n\nSună-ne pentru o discuție amicală și o ofertă personalizată:\nTelefon: [număr]\nEmail: contact@dentiq.ro\nwww.dentiq.ro`;
-
-              const txtContent = `TRANSCEIERE COMPLETĂ:\n\n${fullText}\n\nREZUMAT STRUCTURAT:\n\n${summary}${reclama}`;
+              const txtContent = `TRANSCEIERE:\n\n${fullText}\n\nREZUMAT:\n\n${summary}`;
               const txtBlob = new Blob([txtContent], { type: "text/plain;charset=utf-8" });
               const txtUrl = URL.createObjectURL(txtBlob);
               const txtLink = document.createElement("a");
               txtLink.href = txtUrl;
-              txtLink.download = `rezumat_consultatie_${today}.txt`;
+              txtLink.download = `rezumat_${today}.txt`;
               document.body.appendChild(txtLink);
               txtLink.click();
               document.body.removeChild(txtLink);
 
-              document.getElementById("status").textContent = "Gata! Audio + text salvate.";
-              document.getElementById("status").style.color = "#48bb78";
-            } catch (err) {
-              document.getElementById("result").innerHTML = `<p style="color:#f56565;">Eroare AI: Încearcă din nou.</p>`;
+              document.getElementById("status").textContent = "Gata!";
+            } catch {
               document.getElementById("status").textContent = "Doar audio salvat";
-              document.getElementById("status").style.color = "#f56565";
             }
 
             document.getElementById("new-recording-btn").style.display = "block";
@@ -181,7 +165,7 @@
             document.body.classList.remove("recording");
           };
         })
-        .catch(() => alert("Permite accesul la microfon."));
+        .catch(() => alert("Permite microfonul."));
 
       document.getElementById("start").onclick = () => {
         recorder.start();
