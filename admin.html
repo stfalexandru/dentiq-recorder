@@ -27,12 +27,13 @@
     <p id="error"></p>
 
     <div id="content">
-      <h3>Utilizatori activi în aplicație</h3>
+      <h3>Utilizatori activi în aplicație (record.dentiq.ro)</h3>
       <ul id="user-list"></ul>
 
       <div class="info">
-        <p><strong>Notă:</strong> Aceasta este lista utilizatorilor definiți în codul aplicației.</p>
-        <p>Pentru a adăuga un medic nou, spune-mi numele + parola dorită – îți dau linia exactă de cod să o adaugi în index.html.</p>
+        <p><strong>Instrucțiuni:</strong></p>
+        <p>Pentru a adăuga un medic nou, spune-mi numele dorit (ex. „mihai”) și parola pe care vrei să i-o dai.</p>
+        <p>Îți dau linia exactă de cod să o adaugi în index.html → commit → medic nou gata de login.</p>
         <p>Statistici detaliate (câte înregistrări, durată) vor fi adăugate când vrei.</p>
       </div>
     </div>
@@ -50,9 +51,7 @@
         // Lista utilizatorilor din codul aplicației (index.html)
         const users = {
           "contact": "1234",
-          "alexandru": "parolaLui",
-          "mihai": "parola456"
-          // Aici apar toți medicii pe care i-ai adăugat
+          // Aici apar toți medicii pe care i-ai adăugat în index.html
         };
 
         const list = document.getElementById("user-list");
