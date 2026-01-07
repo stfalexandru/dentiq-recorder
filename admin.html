@@ -7,7 +7,7 @@
   <style>
     body { font-family: "Segoe UI", Arial, sans-serif; background: #f4f6f9; padding: 40px; }
     .container { max-width: 700px; margin: auto; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-    h2 { color: #4a5568; margin-bottom: 30px; text-align: center; }
+    h2 { color: #4a5568; text-align: center; margin-bottom: 30px; }
     ul { list-style: none; padding: 0; }
     li { background: #f8f9fa; padding: 20px; margin: 15px 0; border-radius: 10px; font-size: 18px; }
     .info { margin-top: 40px; font-size: 15px; color: #718096; line-height: 1.6; background: #e6f4ea; padding: 20px; border-radius: 10px; }
@@ -17,26 +17,25 @@
   <div class="container">
     <h2>Admin DentIQ - Dashboard privat</h2>
 
-    <h3>Utilizatori activi în aplicație (record.dentiq.ro)</h3>
+    <h3>Utilizatori activi în aplicație</h3>
     <ul id="user-list">
-      <!-- Lista se completează automat din codul aplicației -->
+      <!-- Lista se completează automat din cod -->
     </ul>
 
     <div class="info">
-      <p><strong>Instrucțiuni pentru tine:</strong></p>
+      <p><strong>Instrucțiuni:</strong></p>
       <p>Pentru a adăuga un medic nou, spune-mi numele dorit (ex. „mihai”) și parola pe care vrei să i-o dai.</p>
-      <p>Îți dau linia exactă de cod să o adaugi în index.html → commit → medic nou gata de login.</p>
-      <p>Statistici detaliate (câte înregistrări, durată per user) vor fi adăugate când vrei – simplu și fără baze de date externe.</p>
-      <p>Aplicația principală: <a href="https://record.dentiq.ro" target="_blank">record.dentiq.ro</a></p>
+      <p>Îți dau linia exactă de cod să o adaugi în index.html → commit → medic nou gata.</p>
+      <p>Link aplicație medici: <a href="https://record.dentiq.ro" target="_blank">record.dentiq.ro</a></p>
+      <p>Statistici detaliate vor fi adăugate când vrei.</p>
     </div>
   </div>
 
   <script>
-    // Lista utilizatorilor din codul aplicației (index.html)
+    // Lista utilizatorilor din index.html (copiată manual – o actualizez când adaugi medici)
     const users = {
       "contact": "1234",
-      // Aici apar toți medicii pe care i-ai adăugat în index.html
-      // Exemplu: "mihai": "parolaLui123"
+      // Aici adaugi medicii când îmi spui
     };
 
     const list = document.getElementById("user-list");
