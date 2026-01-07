@@ -49,7 +49,7 @@
     <p id="error"></p>
   </div>
 
-  <!-- Aplicația recorder (ascunsă până la login) -->
+  <!-- Recorder-ul tău (ascuns până la login) -->
   <div class="container" id="app" style="display: none;">
     <h2>Asistentul tău Dentiq</h2>
     <div id="timer">00:00</div>
@@ -68,19 +68,19 @@
   </div>
 
   <script>
-    // Supabase client
+    // Supabase
     const supabase = supabase.createClient(
       'https://rnfymbsucywjzsugaqiz.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJuZnltYnN1Y3l3anpzZ3VhcWl6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzc2NDkwNTMsImV4cCI6MjA5MzIyNTA1M30.L2g3z3z3z3z3z3z3z3z3z3z3z3z3z3z3z3z3z3z3z3'
     );
 
     // Login
-    document.getElementById("login-btn").onclick = async () => {
-      const email = document.getElementById("email").value.trim().toLowerCase();
-      const password = document.getElementById("password").value;
+    document.getElementById('login-btn').addEventListener('click', async () => {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
 
       if (!email || !password) {
-        document.getElementById("error").textContent = "Completează ambele câmpuri";
+        document.getElementById('error').textContent = 'Completează ambele câmpuri';
         return;
       }
 
@@ -91,19 +91,18 @@
         .single();
 
       if (error || !data) {
-        document.getElementById("error").textContent = "Email sau parolă incorectă";
+        document.getElementById('error').textContent = 'Email sau parolă incorectă';
         return;
       }
 
-      // Verificare parolă temporară în clar
       if (data.password_hash !== password) {
-        document.getElementById("error").textContent = "Email sau parolă incorectă";
+        document.getElementById('error').textContent = 'Email sau parolă incorectă';
         return;
       }
 
       // Login reușit
-      document.getElementById("login-container").style.display = "none";
-      document.getElementById("app").style.display = "block";
+      document.getElementById('login-container').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
 
       // Inițializează recorder-ul (codul tău complet)
       let recorder, audioBlob, startTime, timerInterval;
@@ -197,7 +196,7 @@
       document.getElementById("stop").onclick = () => recorder.stop();
 
       document.getElementById("new-recording-btn").onclick = () => location.reload();
-    };
+    });
   </script>
 </body>
 </html>
