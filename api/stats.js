@@ -1,8 +1,7 @@
-export const config = {
-  api: {
-    bodyParser: true,
-  },
-};
+import { readFile, writeFile } from 'fs/promises';
+import { join } from 'path';
+
+const STATS_FILE = join(process.cwd(), 'data', 'stats.json');
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
@@ -20,6 +19,7 @@ export default async function handler(req, res) {
     newEntry.timestamp = new Date().toISOString();
     stats.push(newEntry);
 
+    // Creează folderul data dacă nu există (Vercel permite)
     await writeFile(STATS_FILE, JSON.stringify(stats, null, 2));
 
     res.status(200).json({ success: true });
@@ -27,4 +27,10 @@ export default async function handler(req, res) {
     console.error(err);
     res.status(500).json({ error: 'Eroare salvare stats' });
   }
+}
+
+export const config = {
+  api: {
+    bodyParser: true,
+  },
 };
