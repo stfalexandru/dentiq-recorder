@@ -11,23 +11,25 @@
     ul { list-style: none; padding: 0; }
     li { background: #f8f9fa; padding: 20px; margin: 15px 0; border-radius: 10px; font-size: 18px; }
     .info { margin-top: 40px; font-size: 15px; color: #718096; line-height: 1.6; background: #e6f4ea; padding: 20px; border-radius: 10px; }
+    a { color: #48bb78; text-decoration: none; }
+    a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
   <div class="container">
     <h2>Admin DentIQ - Dashboard privat</h2>
 
-    <h3>Utilizatori activi în aplicație</h3>
+    <h3>Utilizatori activi în aplicație (record.dentiq.ro)</h3>
     <ul id="user-list">
-      <!-- Lista se completează automat din cod -->
+      <!-- Lista se completează automat din codul aplicației -->
     </ul>
 
     <div class="info">
-      <p><strong>Instrucțiuni:</strong></p>
+      <p><strong>Instrucțiuni pentru tine:</strong></p>
       <p>Pentru a adăuga un medic nou, spune-mi numele dorit (ex. „mihai”) și parola pe care vrei să i-o dai.</p>
-      <p>Îți dau linia exactă de cod să o adaugi în index.html → commit → medic nou gata.</p>
-      <p>Link aplicație medici: <a href="https://record.dentiq.ro" target="_blank">record.dentiq.ro</a></p>
-      <p>Statistici detaliate vor fi adăugate când vrei.</p>
+      <p>Îți dau linia exactă de cod să o adaugi în index.html → commit → medic nou gata de login.</p>
+      <p>Link aplicație medici: <a href="https://record.dentiq.ro" target="_blank">https://record.dentiq.ro</a></p>
+      <p>Statistici detaliate (câte înregistrări, durată per user) vor fi adăugate când vrei.</p>
     </div>
   </div>
 
@@ -35,7 +37,10 @@
     // Lista utilizatorilor din index.html (copiată manual – o actualizez când adaugi medici)
     const users = {
       "contact": "1234",
-      // Aici adaugi medicii când îmi spui
+      "alexandru": "1234",
+      "razvan": "1234",
+      "medic1": "1234"
+      // Adaugă aici medicii pe care i-ai pus în index.html
     };
 
     const list = document.getElementById("user-list");
