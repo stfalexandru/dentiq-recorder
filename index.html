@@ -138,7 +138,9 @@
 
     document.getElementById("stop").onclick = () => recorder.stop();
 
-    document.getElementById("new-recording-btn").onclick = () => resetForNewRecording();
+    document.getElementById("new-recording-btn").onclick = () => {
+      location.reload(); // Reîncarcă pagina – reset complet și sigur
+    };
   </script>
 </body>
 </html>
