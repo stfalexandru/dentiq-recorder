@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Asistentul tău Dentiq</title>
+  <script src="https://unpkg.com/jspdf@latest/dist/jspdf.umd.min.js"></script>
   <style>
     html, body { height: 100%; margin: 0; padding: 0; font-family: "Segoe UI", Arial, sans-serif; }
     body { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); display: flex; justify-content: center; align-items: center; }
@@ -43,9 +44,9 @@
     <div id="result"></div>
     <button id="new-recording-btn">Înregistrare nouă</button>
     <div class="info">
-      La oprire se descarcă automat fișierul audio.<br>
-      Transcrierea și rezumatul apar mai jos (procesare AI în 5-20 sec).<br><br>
-      <strong>Confidențialitate:</strong> Nimic nu este salvat pe server. Totul rămâne pe dispozitivul tău.
+      La oprire se descarcă automat audio + PDF.<br>
+      Textul apare mai jos pentru verificare (procesare AI în 5-20 sec).<br><br>
+      <strong>Confidențialitate:</strong> Nimic nu este salvat pe server.
     </div>
   </div>
 
@@ -57,17 +58,6 @@
       const mins = String(Math.floor(elapsed / 60)).padStart(2, "0");
       const secs = String(elapsed % 60).padStart(2, "0");
       document.getElementById("timer").textContent = `${mins}:${secs}`;
-    };
-
-    const resetForNewRecording = () => {
-      document.getElementById("preview").src = "";
-      document.getElementById("result").innerHTML = "";
-      document.getElementById("status").textContent = "";
-      document.getElementById("timer").textContent = "00:00";
-      document.getElementById("new-recording-btn").style.display = "none";
-      document.body.classList.remove("recording");
-      document.getElementById("start").style.display = "block";
-      document.getElementById("stop").style.display = "none";
     };
 
     navigator.mediaDevices.getUserMedia({ audio: true })
@@ -82,7 +72,7 @@
           const audioUrl = URL.createObjectURL(audioBlob);
           document.getElementById("preview").src = audioUrl;
 
-          // Descărcare audio
+          // Download audio
           const today = new Date().toISOString().slice(0, 10);
           const a = document.createElement("a");
           a.href = audioUrl;
@@ -109,8 +99,41 @@
               <p class="summary">${summary || "Fără rezumat"}</p>
             `;
 
-            document.getElementById("status").textContent = "Gata!";
+            document.getElementById("status").textContent = "Gata! Audio + PDF descărcate.";
             document.getElementById("status").style.color = "#48bb78";
+
+            // Generează și descarcă PDF în frontend cu jsPDF
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Logo
+            const logoUrl = 'https://static.wixstatic.com/media/d8e0f5_baf5a39b63e047789999751ec53d48be~mv2.png/v1/fill/w_258,h_108,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/logo%20DentIQ.png';
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.src = logoUrl;
+            img.onload = () => {
+              doc.addImage(img, 'PNG', 80, 10, 50, 21); // micuț, centrat
+              doc.save(`rezumat_consultatie_${today}.pdf`); // Download automat
+            };
+
+            doc.setFontSize(18);
+            doc.text('Rezumat Consultație Stomatologică - Dentiq', 10, 40);
+
+            doc.setFontSize(12);
+            doc.text(`Data: ${new Date().toLocaleDateString('ro-RO')}`, 10, 50);
+
+            doc.setFontSize(14);
+            doc.text('Transcriere completă:', 10, 60);
+            doc.setFontSize(10);
+            doc.text(fullText, 10, 70, { maxWidth: 190 });
+
+            doc.setFontSize(14);
+            doc.text('Rezumat structurat:', 10, 150);
+            doc.setFontSize(10);
+            doc.text(summary, 10, 160, { maxWidth: 190 });
+
+            doc.setFontSize(8);
+            doc.text('Acest soft a fost creat și este oferit gratuit de www.dentiq.ro, cu ajutorul lui Ștefan Alexandru Florin.', 10, 280, { maxWidth: 190 });
           } catch (err) {
             document.getElementById("result").innerHTML = `<p style="color:#f56565;">Eroare AI: Încearcă din nou.</p>`;
             document.getElementById("status").textContent = "Doar audio salvat";
@@ -138,9 +161,7 @@
 
     document.getElementById("stop").onclick = () => recorder.stop();
 
-    document.getElementById("new-recording-btn").onclick = () => {
-      location.reload(); // Reîncarcă pagina – reset complet și sigur
-    };
+    document.getElementById("new-recording-btn").onclick = () => location.reload();
   </script>
 </body>
 </html>
