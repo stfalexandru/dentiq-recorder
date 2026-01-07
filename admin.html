@@ -6,64 +6,44 @@
   <title>Admin DentIQ - Dashboard privat</title>
   <style>
     body { font-family: "Segoe UI", Arial, sans-serif; background: #f4f6f9; padding: 40px; }
-    .container { max-width: 700px; margin: auto; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); text-align: center; }
-    h2 { color: #4a5568; margin-bottom: 30px; }
-    input { padding: 12px; width: 250px; margin: 10px 0; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; }
-    button { padding: 12px 24px; background: #48bb78; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; }
-    button:hover { background: #38a169; }
-    #error { color: #f56565; margin-top: 10px; font-weight: bold; }
-    #content { display: none; margin-top: 40px; text-align: left; }
+    .container { max-width: 700px; margin: auto; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+    h2 { color: #4a5568; margin-bottom: 30px; text-align: center; }
     ul { list-style: none; padding: 0; }
-    li { background: #f8f9fa; padding: 15px; margin: 10px 0; border-radius: 8px; font-size: 16px; }
-    .info { margin-top: 30px; font-size: 14px; color: #718096; }
+    li { background: #f8f9fa; padding: 20px; margin: 15px 0; border-radius: 10px; font-size: 18px; }
+    .info { margin-top: 40px; font-size: 15px; color: #718096; line-height: 1.6; background: #e6f4ea; padding: 20px; border-radius: 10px; }
   </style>
 </head>
 <body>
   <div class="container">
     <h2>Admin DentIQ - Dashboard privat</h2>
-    <p>Introdu parola admin pentru acces</p>
-    <input type="password" id="admin-pass" placeholder="Parolă admin">
-    <button onclick="checkPassword()">Intră</button>
-    <p id="error"></p>
 
-    <div id="content">
-      <h3>Utilizatori activi în aplicație (record.dentiq.ro)</h3>
-      <ul id="user-list"></ul>
+    <h3>Utilizatori activi în aplicație (record.dentiq.ro)</h3>
+    <ul id="user-list">
+      <!-- Lista se completează automat din codul aplicației -->
+    </ul>
 
-      <div class="info">
-        <p><strong>Instrucțiuni:</strong></p>
-        <p>Pentru a adăuga un medic nou, spune-mi numele dorit (ex. „mihai”) și parola pe care vrei să i-o dai.</p>
-        <p>Îți dau linia exactă de cod să o adaugi în index.html → commit → medic nou gata de login.</p>
-        <p>Statistici detaliate (câte înregistrări, durată) vor fi adăugate când vrei.</p>
-      </div>
+    <div class="info">
+      <p><strong>Instrucțiuni pentru tine:</strong></p>
+      <p>Pentru a adăuga un medic nou, spune-mi numele dorit (ex. „mihai”) și parola pe care vrei să i-o dai.</p>
+      <p>Îți dau linia exactă de cod să o adaugi în index.html → commit → medic nou gata de login.</p>
+      <p>Statistici detaliate (câte înregistrări, durată per user) vor fi adăugate când vrei – simplu și fără baze de date externe.</p>
+      <p>Aplicația principală: <a href="https://record.dentiq.ro" target="_blank">record.dentiq.ro</a></p>
     </div>
   </div>
 
   <script>
-    const ADMIN_PASSWORD = "parolaTaSuperSecreta123"; // SCHIMBĂ cu parola ta reală (doar tu o vezi)
+    // Lista utilizatorilor din codul aplicației (index.html)
+    const users = {
+      "contact": "1234",
+      // Aici apar toți medicii pe care i-ai adăugat în index.html
+      // Exemplu: "mihai": "parolaLui123"
+    };
 
-    function checkPassword() {
-      const pass = document.getElementById("admin-pass").value;
-      if (pass === ADMIN_PASSWORD) {
-        document.getElementById("error").textContent = "";
-        document.getElementById("content").style.display = "block";
-
-        // Lista utilizatorilor din codul aplicației (index.html)
-        const users = {
-          "contact": "1234",
-          // Aici apar toți medicii pe care i-ai adăugat în index.html
-        };
-
-        const list = document.getElementById("user-list");
-        list.innerHTML = "";
-        for (const [user, pwd] of Object.entries(users)) {
-          const li = document.createElement("li");
-          li.textContent = `Utilizator: ${user} (parolă setată)`;
-          list.appendChild(li);
-        }
-      } else {
-        document.getElementById("error").textContent = "Parolă incorectă";
-      }
+    const list = document.getElementById("user-list");
+    for (const [user, pwd] of Object.entries(users)) {
+      const li = document.createElement("li");
+      li.textContent = `Utilizator: ${user} (parolă setată)`;
+      list.appendChild(li);
     }
   </script>
 </body>
