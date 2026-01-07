@@ -6,6 +6,7 @@
   <title>Asistentul tău Dentiq</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
+    /* Tot stilul tău frumos anterior - copiat exact */
     html, body { height: 100%; margin: 0; padding: 0; font-family: "Segoe UI", Arial, sans-serif; }
     body { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); display: flex; justify-content: center; align-items: center; }
     .container { background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); padding: 30px 20px; text-align: center; max-width: 380px; width: 90%; max-height: 95vh; overflow-y: auto; }
@@ -30,7 +31,6 @@
     .info { margin-top: 20px; font-size: 14px; color: #718096; line-height: 1.6; }
     #new-recording-btn { margin-top: 20px; padding: 12px 24px; background: #3182ce; color: white; border: none; border-radius: 10px; font-size: 16px; cursor: pointer; display: none; }
     #new-recording-btn:hover { background: #2b6cb0; }
-    /* Stil login */
     #login-container input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
     #login-container button { padding: 12px 24px; background: #48bb78; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; margin-top: 10px; }
     #login-container button:hover { background: #38a169; }
@@ -39,7 +39,6 @@
 </head>
 <body>
 
-  <!-- Pagina de login -->
   <div class="container" id="login-container">
     <h2>Bine ai venit la Asistentul DentIQ</h2>
     <p>Introdu datele de acces furnizate</p>
@@ -49,7 +48,6 @@
     <p id="error"></p>
   </div>
 
-  <!-- Recorder-ul tău (ascuns până la login) -->
   <div class="container" id="app" style="display: none;">
     <h2>Asistentul tău Dentiq</h2>
     <div id="timer">00:00</div>
@@ -68,16 +66,19 @@
   </div>
 
   <script>
-    // Supabase
     const supabase = supabase.createClient(
       'https://rnfymbsucywjzsugaqiz.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJuZnltYnN1Y3l3anpzZ3VhcWl6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzc2NDkwNTMsImV4cCI6MjA5MzIyNTA1M30.L2g3z3z3z3z3z3z3z3z3z3z3z3z3z3z3z3z3z3z3z3'
     );
 
-    // Login
     document.getElementById('login-btn').addEventListener('click', async () => {
+      console.log("Buton apăsat – încep login");
+
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
+
+      console.log("Email introdus:", email);
+      console.log("Parolă introdusă:", password);
 
       if (!email || !password) {
         document.getElementById('error').textContent = 'Completează ambele câmpuri';
@@ -90,6 +91,9 @@
         .eq('email', email)
         .single();
 
+      console.log("Răspuns Supabase data:", data);
+      console.log("Răspuns Supabase error:", error);
+
       if (error || !data) {
         document.getElementById('error').textContent = 'Email sau parolă incorectă';
         return;
@@ -100,11 +104,11 @@
         return;
       }
 
-      // Login reușit
+      console.log("Login reușit!");
       document.getElementById('login-container').style.display = 'none';
       document.getElementById('app').style.display = 'block';
 
-      // Inițializează recorder-ul (codul tău complet)
+      // Recorder-ul tău (codul complet existent)
       let recorder, audioBlob, startTime, timerInterval;
 
       const updateTimer = () => {
@@ -126,7 +130,6 @@
             const audioUrl = URL.createObjectURL(audioBlob);
             document.getElementById("preview").src = audioUrl;
 
-            // Download audio
             const today = new Date().toISOString().slice(0, 10);
             const a = document.createElement("a");
             a.href = audioUrl;
@@ -135,7 +138,6 @@
             a.click();
             document.body.removeChild(a);
 
-            // Procesare AI
             document.getElementById("status").textContent = "Se procesează cu AI...";
             document.getElementById("status").style.color = "#3182ce";
 
@@ -153,7 +155,6 @@
                 <p class="summary">${summary || "Fără rezumat"}</p>
               `;
 
-              // .txt cu reclamă
               const reclama = `\n\n\nȘtiai că?\n\nLaboratorul nostru de tehnică dentară DentIQ este specializat în lucrări All-on-X și oferă GARANȚIE PE VIAȚĂ pentru implanturi și proteze.\n\nSună-ne pentru o discuție amicală și o ofertă personalizată:\nTelefon: [număr]\nEmail: contact@dentiq.ro\nwww.dentiq.ro`;
 
               const txtContent = `TRANSCEIERE COMPLETĂ:\n\n${fullText}\n\nREZUMAT STRUCTURAT:\n\n${summary}${reclama}`;
