@@ -27,10 +27,10 @@ export default async function handler(req, res) {
       throw new Error('Audio gol');
     }
 
-    // Transcriere Whisper stabil (merge 100%)
+    // Transcriere - varianta pro
     const formData = new FormData();
     formData.append('file', new Blob([audioBuffer], { type: 'audio/webm' }), 'audio.webm');
-    formData.append('model', 'whisper-1');  // stabil, fără erori
+    formData.append('model', 'gpt-4o-transcribe');  // ← aici e upgrade-ul
     formData.append('language', 'ro');
 
     const whisperResponse = await fetch('https://api.openai.com/v1/audio/transcriptions', {
@@ -43,13 +43,13 @@ export default async function handler(req, res) {
 
     if (!whisperResponse.ok) {
       const err = await whisperResponse.text();
-      throw new Error(`Whisper error: ${err}`);
+      throw new Error(`Transcriere error: ${err}`);
     }
 
     const { text: fullText } = await whisperResponse.json();
     const trimmedText = (fullText || '').trim() || 'Fără text detectat';
 
-    // Rezumat GPT cu promptul tău PRO
+    // Rezumat GPT cu promptul tău strict
     const gptResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -87,7 +87,7 @@ STRUCTURĂ OBLIGATORIE:
 - DOAR diagnostice exprimate explicit în dictare.
 - Dacă nu există: „Nu s-au identificat din dictare.”
 5. Propuneri / Tratament recomandat:
-- Doar tratamente menționate explicitly.
+- Doar tratamente menționate explicit.
 6. Urmărire / Recomandări suplimentare:
 - Doar dacă sunt menționate explicit.
 La final, NU adăuga concluzii sau interpretări suplimentare.`
