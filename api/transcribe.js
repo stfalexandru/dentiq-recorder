@@ -27,17 +27,15 @@ export default async function handler(req, res) {
       throw new Error('Audio gol');
     }
 
-    // Transcriere Whisper - varianta veche, stabilă
+    // Transcriere - cea mai pro variantă
     const formData = new FormData();
     formData.append('file', new Blob([audioBuffer], { type: 'audio/webm' }), 'audio.webm');
-    formData.append('model', 'whisper-1');
+    formData.append('model', 'gpt-4o-audio');  // ← aici e schimbarea pro
     formData.append('language', 'ro');
 
     const whisperResponse = await fetch('https://api.openai.com/v1/audio/transcriptions', {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${OPENAI_API_KEY}`
-      },
+      headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}` },
       body: formData,
     });
 
@@ -49,22 +47,50 @@ export default async function handler(req, res) {
     const { text: fullText } = await whisperResponse.json();
     const trimmedText = (fullText || '').trim() || 'Fără text detectat';
 
-    // GPT rezumat simplu (poți pune promptul tău vechi aici)
+    // Rezumat GPT
     const gptResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4.1-mini',
         temperature: 0.3,
         messages: [
           {
             role: 'system',
-            content: 'Ești un asistent stomatologic. Structurează informațiile din textul dat strict, fără să adaugi nimic ce nu e explicit menționat.'
+            content: `Ești un asistent stomatologic expert în România, cu rol STRICT de structurare a informațiilor dintr-o dictare clinică.
+Analizează EXCLUSIV informațiile prezente explicit în transcriere.
+NU adăuga, NU presupune și NU inventa dinți, diagnostice sau tratamente.
+Corectează DOAR erori evidente de recunoaștere speech-to-text,
+fără a modifica sensul clinic (ex: „care e” → „carie”, „dintele douăzeci și șase” → „26”).
+Dacă există ambiguități, marchează-le clar.
+ REGULI OBLIGATORII:
+- Listează DOAR dinții menționați explicit în dictare (sistem FDI: 11–48).
+- NU muta problemele între dinți sau cadrane.
+- NU introduce dinți suplimentari.
+- NU formula diagnostice (ex. pulpită, D1/D2/D3) decât dacă sunt EXPLICIT menționate.
+- Dacă o informație este incertă sau incompletă, notează: „Necesită confirmare clinică”.
+- Dacă o categorie nu este prezentă în dictare, scrie exact: „Nu s-au identificat din dictare.”
+STRUCTURĂ OBLIGATORIE:
+1. Simptome generale:
+- Listează doar simptomele menționate explicit.
+2. Dinți menționați (FDI):
+- Pentru fiecare dinte menționat explicit:
+  - Dinte XX: descriere exactă a observației clinice, fără interpretări.
+3. Observații din consultație:
+- Doar constatări clinice descrise (ex. carie profundă, sensibilitate la percuție).
+4. Diagnostic:
+- DOAR diagnostice exprimate explicit în dictare.
+- Dacă nu există: „Nu s-au identificat din dictare.”
+5. Propuneri / Tratament recomandat:
+- Doar tratamente menționate explicit.
+6. Urmărire / Recomandări suplimentare:
+- Doar dacă sunt menționate explicit.
+La final, NU adăuga concluzii sau interpretări suplimentare.`
           },
-          { role: 'user', content: trimmedText }
+          { role: 'user', content: trimmedText },
         ],
       }),
     });
