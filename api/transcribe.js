@@ -27,15 +27,17 @@ export default async function handler(req, res) {
       throw new Error('Audio gol');
     }
 
-    // Transcriere - cea mai pro variantă
+    // Transcriere Whisper stabil (merge 100%)
     const formData = new FormData();
     formData.append('file', new Blob([audioBuffer], { type: 'audio/webm' }), 'audio.webm');
-    formData.append('model', 'gpt-4o-audio');  // ← aici e schimbarea pro
+    formData.append('model', 'whisper-1');  // stabil, fără erori
     formData.append('language', 'ro');
 
     const whisperResponse = await fetch('https://api.openai.com/v1/audio/transcriptions', {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}` },
+      headers: {
+        'Authorization': `Bearer ${OPENAI_API_KEY}`
+      },
       body: formData,
     });
 
@@ -47,7 +49,7 @@ export default async function handler(req, res) {
     const { text: fullText } = await whisperResponse.json();
     const trimmedText = (fullText || '').trim() || 'Fără text detectat';
 
-    // Rezumat GPT
+    // Rezumat GPT cu promptul tău PRO
     const gptResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -55,7 +57,7 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4.1-mini',
+        model: 'gpt-4o-mini',
         temperature: 0.3,
         messages: [
           {
@@ -85,7 +87,7 @@ STRUCTURĂ OBLIGATORIE:
 - DOAR diagnostice exprimate explicit în dictare.
 - Dacă nu există: „Nu s-au identificat din dictare.”
 5. Propuneri / Tratament recomandat:
-- Doar tratamente menționate explicit.
+- Doar tratamente menționate explicitly.
 6. Urmărire / Recomandări suplimentare:
 - Doar dacă sunt menționate explicit.
 La final, NU adăuga concluzii sau interpretări suplimentare.`
