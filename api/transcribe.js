@@ -1,63 +1,95 @@
-export const config = { &nbsp;&nbsp;api: { &nbsp;&nbsp;&nbsp;&nbsp;bodyParser: false, &nbsp;&nbsp;&nbsp;&nbsp;sizeLimit: '10mb', &nbsp;&nbsp;}, }; const OPENAI_API_KEY = process.env.OPENAI_API_KEY; export default async function handler(req, res) { &nbsp;&nbsp;if (req.method !== 'POST') { &nbsp;&nbsp;&nbsp;&nbsp;return res.status(405).send('Method not allowed'); &nbsp;&nbsp;} &nbsp;&nbsp;if (!OPENAI_API_KEY) { &nbsp;&nbsp;&nbsp;&nbsp;return res.status(500).json({ error: 'Cheie API lipsă' }); &nbsp;&nbsp;} &nbsp;&nbsp;try { &nbsp;&nbsp;&nbsp;&nbsp;const buffers = []; &nbsp;&nbsp;&nbsp;&nbsp;for await (const chunk of req) { &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;buffers.push(chunk); &nbsp;&nbsp;&nbsp;&nbsp;} &nbsp;&nbsp;&nbsp;&nbsp;const audioBuffer = Buffer.concat(buffers); &nbsp;&nbsp;&nbsp;&nbsp;if (audioBuffer.length === 0) { &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;throw new Error('Audio gol'); &nbsp;&nbsp;&nbsp;&nbsp;} &nbsp;&nbsp;&nbsp;&nbsp;// Transcriere Whisper &nbsp;&nbsp;&nbsp;&nbsp;const formData = new FormData(); &nbsp;&nbsp;&nbsp;&nbsp;formData.append('file', new Blob([audioBuffer], { type: 'audio/webm' }), 'audio.webm'); &nbsp;&nbsp;&nbsp;&nbsp;formData.append('model', 'whisper-1'); &nbsp;&nbsp;&nbsp;&nbsp;formData.append('language', 'ro'); &nbsp;&nbsp;&nbsp;&nbsp;const whisperResponse = await fetch('https://api.openai.com/v1/audio/transcriptions', { &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;method: 'POST', &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;headers: { 'Authorization': Bearer ${OPENAI_API_KEY} }, &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;body: formData, &nbsp;&nbsp;&nbsp;&nbsp;}); &nbsp;&nbsp;&nbsp;&nbsp;if (!whisperResponse.ok) { &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const err = await whisperResponse.text(); &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;throw new Error(Whisper error: ${err}); &nbsp;&nbsp;&nbsp;&nbsp;} &nbsp;&nbsp;&nbsp;&nbsp;const { text: fullText } = await whisperResponse.json(); &nbsp;&nbsp;&nbsp;&nbsp;const trimmedText = (fullText || '').trim() || 'Fără text detectat'; &nbsp;&nbsp;&nbsp;&nbsp;// Rezumat GPT &nbsp;&nbsp;&nbsp;&nbsp;const gptResponse = await fetch('https://api.openai.com/v1/chat/completions', { &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;method: 'POST', &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;headers: { &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'Authorization': Bearer ${OPENAI_API_KEY}, &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'Content-Type': 'application/json', &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}, &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;body: JSON.stringify({ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;model: 'gpt-4o-mini', &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;temperature: 0.3, &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;messages: [ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ &nbsp;&nbsp;role: 'system', &nbsp;&nbsp;content: Ești un asistent stomatologic expert în România, cu rol STRICT de structurare a informațiilor dintr-o dictare clinică.
-Analizează EXCLUSIV informațiile prezente explicit în transcriere.
-NU adăuga, NU presupune și NU inventa dinți, diagnostice sau tratamente.
-Corectează DOAR erori evidente de recunoaștere speech-to-text,
-fără a modifica sensul clinic (ex: „care e” → „carie”, „dintele douăzeci și șase” → „26”).
-Dacă există ambiguități, marchează-le clar.
- REGULI OBLIGATORII:
+const FormData = require('form-data');
 
-Listează DOAR dinții menționați explicit în dictare (sistem FDI: 11–48).
-NU muta problemele între dinți sau cadrane.
-NU introduce dinți suplimentari.
-NU formula diagnostice (ex. pulpită, D1/D2/D3) decât dacă sunt EXPLICIT menționate.
-Dacă o informație este incertă sau incompletă, notează: „Necesită confirmare clinică”.
-Dacă o categorie nu este prezentă în dictare, scrie exact: „Nu s-au identificat din dictare.”
-STRUCTURĂ OBLIGATORIE:
+export const config = {
+  api: {
+    bodyParser: false,
+    sizeLimit: '10mb',
+  },
+};
 
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
-Simptome generale:
+module.exports = async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Metodă nepermisă' });
+  }
 
+  if (!OPENAI_API_KEY) {
+    return res.status(500).json({ error: 'Cheie API lipsă' });
+  }
 
-Listează doar simptomele menționate explicit.
+  try {
+    const buffers = [];
+    for await (const chunk of req) {
+      buffers.push(chunk);
+    }
+    const audioBuffer = Buffer.concat(buffers);
 
+    if (audioBuffer.length === 0) {
+      throw new Error('Audio gol');
+    }
 
-Dinți menționați (FDI):
+    const form = new FormData();
+    form.append('file', audioBuffer, {
+      filename: 'audio.webm',
+      contentType: 'audio/webm'
+    });
+    form.append('model', 'whisper-1');
+    form.append('language', 'ro');
 
+    const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+        ...form.getHeaders()
+      },
+      body: form
+    });
 
-Pentru fiecare dinte menționat explicit:
-  - Dinte XX: descriere exactă a observației clinice, fără interpretări.
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Whisper error: ${errorText}`);
+    }
 
+    const { text } = await response.json();
+    const fullText = text?.trim() || 'Fără text detectat';
 
-Observații din consultație:
+    // GPT - prompt simplu ca să nu mai avem probleme
+    const gptResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        temperature: 0.3,
+        messages: [
+          {
+            role: 'system',
+            content: 'Ești un asistent stomatologic. Structurează informațiile din textul dat strict, fără să adaugi nimic ce nu e explicit menționat.'
+          },
+          {
+            role: 'user',
+            content: fullText
+          }
+        ]
+      })
+    });
 
+    if (!gptResponse.ok) {
+      throw new Error('Eroare la GPT');
+    }
 
-Doar constatări clinice descrise (ex. carie profundă, sensibilitate la percuție).
+    const gptData = await gptResponse.json();
+    const summary = gptData.choices?.[0]?.message?.content?.trim() || 'Nu s-a putut genera rezumatul';
 
-
-Diagnostic:
-
-
-DOAR diagnostice exprimate explicit în dictare.
-Dacă nu există: „Nu s-au identificat din dictare.”
-
-
-Propuneri / Tratament recomandat:
-
-
-Doar tratamente menționate explicit.
-
-
-Urmărire / Recomandări suplimentare:
-
-
-Doar dacă sunt menționate explicit.
-La final, NU adăuga concluzii sau interpretări suplimentare. }, &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ role: 'user', content: trimmedText }, &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;], &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}), &nbsp;&nbsp;&nbsp;&nbsp;}); &nbsp;&nbsp;&nbsp;&nbsp;if (!gptResponse.ok) { &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const err = await gptResponse.text(); &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;throw new Error(GPT error: ${err}`);
-    }
-    const gptData = await gptResponse.json();
-    const summary = gptData.choices[0].message.content.trim();
-    res.status(200).json({ fullText: trimmedText, summary });
-  } catch (error) {
-    console.error('Eroare backend:', error);
-    res.status(500).json({ error: 'Eroare procesare', details: error.message });
-  }
-}
+    res.status(200).json({ fullText, summary });
+  } catch (error) {
+    console.error('EROARE:', error.message);
+    res.status(500).json({
+      error: 'Eroare procesare',
+      details: error.message
+    });
+  }
+};
