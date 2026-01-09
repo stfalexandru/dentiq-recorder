@@ -1,5 +1,3 @@
-const FormData = require('form-data');
-
 export const config = {
   api: {
     bodyParser: false,
@@ -9,9 +7,9 @@ export const config = {
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Metodă nepermisă' });
+    return res.status(405).send('Method not allowed');
   }
 
   if (!OPENAI_API_KEY) {
@@ -29,37 +27,34 @@ module.exports = async function handler(req, res) {
       throw new Error('Audio gol');
     }
 
-    const form = new FormData();
-    form.append('file', audioBuffer, {
-      filename: 'audio.webm',
-      contentType: 'audio/webm'
-    });
-    form.append('model', 'whisper-1');
-    form.append('language', 'ro');
+    // Transcriere Whisper - varianta veche, stabilă
+    const formData = new FormData();
+    formData.append('file', new Blob([audioBuffer], { type: 'audio/webm' }), 'audio.webm');
+    formData.append('model', 'whisper-1');
+    formData.append('language', 'ro');
 
-    const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+    const whisperResponse = await fetch('https://api.openai.com/v1/audio/transcriptions', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
-        ...form.getHeaders()
+        Authorization: `Bearer ${OPENAI_API_KEY}`
       },
-      body: form
+      body: formData,
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Whisper error: ${errorText}`);
+    if (!whisperResponse.ok) {
+      const err = await whisperResponse.text();
+      throw new Error(`Whisper error: ${err}`);
     }
 
-    const { text } = await response.json();
-    const fullText = text?.trim() || 'Fără text detectat';
+    const { text: fullText } = await whisperResponse.json();
+    const trimmedText = (fullText || '').trim() || 'Fără text detectat';
 
-    // GPT - prompt simplu ca să nu mai avem probleme
+    // GPT rezumat simplu (poți pune promptul tău vechi aici)
     const gptResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${OPENAI_API_KEY}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         model: 'gpt-4o-mini',
@@ -69,27 +64,22 @@ module.exports = async function handler(req, res) {
             role: 'system',
             content: 'Ești un asistent stomatologic. Structurează informațiile din textul dat strict, fără să adaugi nimic ce nu e explicit menționat.'
           },
-          {
-            role: 'user',
-            content: fullText
-          }
-        ]
-      })
+          { role: 'user', content: trimmedText }
+        ],
+      }),
     });
 
     if (!gptResponse.ok) {
-      throw new Error('Eroare la GPT');
+      const err = await gptResponse.text();
+      throw new Error(`GPT error: ${err}`);
     }
 
     const gptData = await gptResponse.json();
-    const summary = gptData.choices?.[0]?.message?.content?.trim() || 'Nu s-a putut genera rezumatul';
+    const summary = gptData.choices[0].message.content.trim();
 
-    res.status(200).json({ fullText, summary });
+    res.status(200).json({ fullText: trimmedText, summary });
   } catch (error) {
-    console.error('EROARE:', error.message);
-    res.status(500).json({
-      error: 'Eroare procesare',
-      details: error.message
-    });
+    console.error('Eroare backend:', error);
+    res.status(500).json({ error: 'Eroare procesare', details: error.message });
   }
-};
+}
