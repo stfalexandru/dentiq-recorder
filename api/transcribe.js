@@ -11,7 +11,7 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ error: 'Metodă nepermisă' });
   }
 
   if (!OPENAI_API_KEY) {
@@ -29,60 +29,58 @@ export default async function handler(req, res) {
       throw new Error('Audio gol');
     }
 
-    // Transcriere - folosim whisper-1 ca să fie stabil
     const formData = new FormData();
     formData.append('file', audioBuffer, {
       filename: 'audio.webm',
-      contentType: 'audio/webm',
+      contentType: 'audio/webm'
     });
-    formData.append('model', 'whisper-1');       // ← stabil, schimbăm la gpt-4o-transcribe după
+    formData.append('model', 'whisper-1');          // stabil, schimbăm după
     formData.append('language', 'ro');
 
-    const whisperResponse = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+    const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${OPENAI_API_KEY}`,
-        ...formData.getHeaders(),   // ← cheia fixului!
+        ...formData.getHeaders()   // <- asta rezolvă eroarea!
       },
-      body: formData,
+      body: formData
     });
 
-    if (!whisperResponse.ok) {
-      const err = await whisperResponse.text();
-      throw new Error(`Whisper error: ${err}`);
+    if (!response.ok) {
+      const err = await response.text();
+      throw new Error(`Eroare Whisper: ${err}`);
     }
 
-    const { text: fullText } = await whisperResponse.json();
-    const trimmedText = (fullText || '').trim() || 'Fără text detectat';
+    const { text } = await response.json();
+    const fullText = (text || '').trim() || 'Fără text';
 
-    // Rezumat GPT (simplu)
-    const gptResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    // GPT rezumat simplu (poți pune promptul tău vechi aici după)
+    const gptRes = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
         model: 'gpt-4o-mini',
         temperature: 0.3,
         messages: [
-          { role: 'system', content: 'Structurăază strict informațiile din dictare stomatologică fără să inventezi nimic.' },
-          { role: 'user', content: trimmedText },
-        ],
-      }),
+          { role: 'system', content: 'Structurăază strict dictarea stomatologică fără invenții.' },
+          { role: 'user', content: fullText }
+        ]
+      })
     });
 
-    if (!gptResponse.ok) {
-      const err = await gptResponse.text();
-      throw new Error(`GPT error: ${err}`);
+    if (!gptRes.ok) {
+      throw new Error('Eroare GPT');
     }
 
-    const gptData = await gptResponse.json();
-    const summary = gptData.choices?.[0]?.message?.content?.trim() || 'Nu s-a putut genera rezumatul.';
+    const data = await gptRes.json();
+    const summary = data.choices?.[0]?.message?.content?.trim() || 'Eroare rezumat';
 
-    res.status(200).json({ fullText: trimmedText, summary });
-  } catch (error) {
-    console.error('Eroare:', error);
-    res.status(500).json({ error: 'Eroare procesare', details: error.message });
+    res.status(200).json({ fullText, summary });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Eroare procesare', details: err.message });
   }
 }
